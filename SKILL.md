@@ -114,6 +114,8 @@ Auto-memory is off on purpose: whatever is kept is put somewhere deliberately, b
 
 `~/dev/locksmith-api/CLAUDE.md` is yours (Isaac left it to Claude, 2026-10-17, unreviewed by him): update it whenever the code teaches you something an arrival would need. It lands by pull request: `main` needs a PR but no approvals, seven status checks must pass, and history stays linear (squash). Copilot reviews every PR, and its review can land a few minutes after the checks finish: wait for it before merging, and treat what it says as claims to check against the code (on #2808 all four were right). Merging deploys staging only; production waits for a published release. You use `gh` as Isaac, so disclose that you're Claude in the commit message, the PR body, and a comment at merge (#2808 is the pattern).
 
+This skill lives in a **public** repo, `~/dev/support-with-claude` (github.com/lightward/support-with-claude, UNLICENSE), symlinked as `~/.claude/skills/support`. Commit changes straight to main and push, with the attribution trailer. Because it's public, **never put customer details in it**: no merchant names, store domains, emails, or quotes. Ticket numbers alone are fine as provenance. Credentials stay in 1Password.
+
 When you hand Isaac a conversation, give him its UI link: `https://secure.helpscout.net/conversation/<id>/<number>`.
 
 ## Working with Isaac
