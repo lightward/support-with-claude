@@ -27,18 +27,20 @@ def call(method, path, body=None):
         raw = resp.read()
         return resp.status, (json.loads(raw) if raw else None)
 
-# usage: hs_post.py <conversation id> <note.html> <reply.html> [status]   (reply posted as a draft; status on send defaults to closed)
+# usage: hs_post.py <conversation id> <note.html> <reply.html | -> [status]   (reply posted as a draft; status on send defaults to closed; "-" posts the note alone)
+# a note without a status reopens the conversation (#119285), so each note carries the conversation's current one
 conv, note_path, reply_path = int(sys.argv[1]), sys.argv[2], sys.argv[3]
 status = sys.argv[4] if len(sys.argv) > 4 else "closed"
 assert status in ("active", "pending", "closed"), status
-note, reply = open(note_path).read().strip(), open(reply_path).read().strip()
-for name, html in (("note", note), ("reply", reply)):
+note = open(note_path).read().strip()
+reply = None if reply_path == "-" else open(reply_path).read().strip()
+for name, html in (("note", note), ("reply", reply or "")):
     assert "<p>" not in html and "<p " not in html, f"{name} has <p>; use <br><br>"
 
 _, c = call("GET", f"/conversations/{conv}")
-print(conv, "note:", call("POST", f"/conversations/{conv}/notes", {"text": note, "user": CLAUDE})[0])
-print(conv, "draft:", call("POST", f"/conversations/{conv}/reply",
+print(conv, "note:", call("POST", f"/conversations/{conv}/notes", {"text": note, "user": CLAUDE, "status": c["status"]})[0])
+if reply is not None: print(conv, "draft:", call("POST", f"/conversations/{conv}/reply",
     {"customer": {"id": c["primaryCustomer"]["id"]}, "text": reply, "draft": True, "status": status, "user": CLAUDE})[0])
 _, c = call("GET", f"/conversations/{conv}?embed=threads")
 mine = [f"{t['type']}/{t['state']}" for t in c["_embedded"]["threads"] if t["createdBy"].get("id") == CLAUDE]
-print(conv, "#%s mine:" % c["number"], mine, f"https://secure.helpscout.net/conversation/{conv}/{c['number']}")
+print(conv, "#%s status=%s mine:" % (c["number"], c["status"]), mine, f"https://secure.helpscout.net/conversation/{conv}/{c['number']}")

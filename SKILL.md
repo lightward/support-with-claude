@@ -41,7 +41,7 @@ curl -s -H "Authorization: Bearer $TOKEN" "https://api.helpscout.net/v2/conversa
 
 Writing, always as yourself (`"user": 908315`):
 
-- a note for the team: `POST /v2/conversations/<id>/notes` with `{"text": html, "user": 908315}`
+- a note for the team: `POST /v2/conversations/<id>/notes` with `{"text": html, "user": 908315, "status": <the conversation's current status>}`. Without `status`, a note reopens a closed conversation and drops it back into Unassigned (#119285).
 - a reply, as a draft: `POST /v2/conversations/<id>/reply` with `{"customer": {"id": <customer id>}, "text": html, "draft": true, "status": "closed", "user": 908315}`. A draft's `status` is what the conversation becomes when the draft is sent, and `closed` is usually right: once a reply goes out, the conversation is waiting on the customer, and that's closeable. Use another status only when there's a reason to keep it open, and say why in the note: `pending` when we owe a follow-up that waits on a teammate's fix or deploy (Isaac's convention, #119228), `active` when the next move is ours now. (Checked 2026-10-17, end to end: the draft stores `status=closed`, and sending it closed the conversation.)
 
 Help Scout renders `<p>` with no spacing, so paragraphs run together. That's true of notes as much as replies. Separate paragraphs with `<br><br>` and don't use `<p>` at all. Lists are `<ol><li>…<br></li></ol>`. A lead-in line ending in a colon sits tight against its list (`Here's how:<ol>…`), since it belongs to it. Text after a list needs a `<br>` after the closing tag, or it butts up against the last item; that gap is what separates the list from the next section. `<b>` and `<code>` work. Get the format right before posting: the API can't edit a thread afterwards (PATCH on a thread answers 403) or delete a draft (DELETE answers 400), so a mistake means a fresh thread, and a second draft sits beside the first until someone discards one in the UI.
@@ -91,7 +91,7 @@ When the question is what a merchant's admin shows, walk it under staff imperson
 
 ## Helpers
 
-- `python3 -I ~/.claude/skills/support/bin/hs_post.py <conversation id> <note.html> <reply.html>` posts a note and a draft reply in your seat (status on send: closed, or pass `active` as a fourth argument when we owe a follow-up), refuses `<p>`, and prints what landed with the conversation's UI link. It gets its own token.
+- `python3 -I ~/.claude/skills/support/bin/hs_post.py <conversation id> <note.html> <reply.html | -> [status]` posts a note (keeping the conversation's status) and a draft reply in your seat, or the note alone with `-` (status on send: closed, or pass `active` as a fourth argument when we owe a follow-up), refuses `<p>`, and prints what landed with the conversation's UI link. It gets its own token.
 - `bin/walk.js`, above.
 - `node ~/.claude/skills/support/bin/storefront_lock_check.js <url> [--wrong-passcode]`: walks a locked storefront page as an anonymous visitor in a throwaway profile, waits for Locksmith's prompt, screenshots it, and with `--wrong-passcode` submits a deliberately wrong code to see the refusal (screenshots in `/tmp/storefront-check/`). It never enters a real passcode: those are the merchant's secrets, and a single-use or counted key would be spent.
 - `bin/locksmith_trial_extend.rb`: a Locksmith trial extension, run on a pinned web machine with Isaac's go: `B64=$(base64 < ~/.claude/skills/support/bin/locksmith_trial_extend.rb | tr -d '\n'); flyctl ssh console -a locksmith-api-production --machine <web id> -C "sh -c 'echo $B64 | base64 -d > /tmp/lte.rb && SHOP=<name>.myshopify.com DAYS=15 timeout 90 bin/rails runner /tmp/lte.rb; rm -f /tmp/lte.rb'"`. It prints before and after, and refuses a subscriber or a trial that already has more than 5 days left. Put the new end date from its output into the reply.
@@ -126,6 +126,7 @@ When you hand Isaac a conversation, give him its UI link: `https://secure.helpsc
 
 The wider house: `~/dev/CLAUDE.md/README.md` (Lightward's shared principles), `~/dev/foam/CLAUDE.md` (how Isaac runs his epistemics), `~/dev/lightward-docs/support/` (support posture). What shaped this skill's first days:
 
+- **His `gh` is yours, and so is everything else on `$PATH`** (Isaac, 2026-10-19). Always identify yourself as Claude in what it writes.
 - **Trust and go are separate.** He trusts you with your own moves; production writes, sends, and closes still wait for his explicit go, which travels as the command's first line (`# go: <his words>`). "I'm in" means he trusts your step, not that he's signed off on its shape.
 - **Say what's verified.** Mark what you checked in code or production and what you inferred, in notes and in chat. When a reader (subagent) reports, check its central claims yourself before they reach a customer; the edges are where errors got through.
 - **Answer direct questions at the end of a turn**, where he'll see them, not as the opening line of a long, busy turn.
