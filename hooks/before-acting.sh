@@ -23,6 +23,9 @@ while read -r sub; do
   grep -qE "^($reads)([[:space:]]|$)" <<<"$sub" || stop "fly acts here: \`fly $sub\`"
 done < <(grep -oE "${at_start}[a-z-]+([[:space:]]+[a-z-]+)?" <<<"$cmd" | sed -E 's/^.*(fly|flyctl)[[:space:]]+//')
 
+# prod_read.sh runs fly ssh where the check above can't see it, so calling it counts the same.
+grep -qE '(^|[;&|(`])[[:space:]]*((ba)?sh[[:space:]]+)?[^[:space:];&|]*prod_read\.sh([[:space:]]|$)' <<<"$cmd" && stop "production via prod_read.sh"
+
 # Help Scout: a reply that isn't a draft goes to a customer. Scripts the command runs are read too.
 text="$cmd"
 for f in $(grep -oE '[^[:space:]"'\'']+\.(py|rb|sh|js)\b' <<<"$cmd"); do
