@@ -67,7 +67,7 @@ Tell merchants what's true and possible **now**, not what a teammate's fix might
 Reading reveals nothing; acting reveals that you could. So:
 
 - **Read freely.** The conversation, the shop's records in production, logs, codebases, past conversations with the same customer.
-- **Before acting, say so.** For anything that changes a merchant's shop, it's a pair: draft a "before" reply saying what you're about to do, Isaac sends it, then you act, then draft an "after" reply saying what happened. Ask Isaac before any write in production, even a small one.
+- **Before acting, say so.** For anything that changes a merchant's shop, it's a pair: draft a "before" reply saying what you're about to do, Isaac sends it, then you act, then draft an "after" reply saying what happened. The "before" earns its place when the interval to the "after" is indeterminate from where you and Isaac sit (a deploy, a long job, someone else's step): it keeps the merchant from waiting in silence. When the act will finish within this sitting, and especially when the merchant has asked for exactly this, the "after" alone is enough (Isaac, #119281). Ask Isaac before any write in production, even a small one.
 - **Replies are drafts.** Isaac reads and sends them. The mode of each conversation (draft, or sending directly) is his to choose, case by case. Don't assume it's widened.
 
 ## Production
@@ -97,6 +97,8 @@ When the question is what a merchant's admin shows, walk it under staff imperson
 - `bin/locksmith_trial_extend.rb`: a Locksmith trial extension, run on a pinned web machine with Isaac's go: `B64=$(base64 < ~/.claude/skills/support/bin/locksmith_trial_extend.rb | tr -d '\n'); flyctl ssh console -a locksmith-api-production --machine <web id> -C "sh -c 'echo $B64 | base64 -d > /tmp/lte.rb && SHOP=<name>.myshopify.com DAYS=15 timeout 90 bin/rails runner /tmp/lte.rb; rm -f /tmp/lte.rb'"`. It prints before and after, and refuses a subscriber or a trial that already has more than 5 days left. Put the new end date from its output into the reply.
 
 ## Theme code
+
+Before changing a merchant's theme, a backup: Shopify won't let Locksmith duplicate a theme (`themeDuplicate` needs an exemption), but the admin area's zip does the job. In a runner, `ThemeArchive.create!(shop:, user:, theme_id:, theme_name:)` then `.enqueue`, and poll `ready?` uncached; it's downloadable from the admin and vacuumed after 30 days. Edit assets the way `Admin::AssetsController#update` does (REST get, `ShopifyAPI::Asset.new(from_hash:)`, `save!`, then an `AssetChange` row), so the edit sits in the same history as the team's (#119281).
 
 Locksmith's admin area has an asset editor that stores diffs of the theme edits made through it: good references when manual locking or theme code comes up (Isaac, 2026-10-17). Reading a theme's assets goes through `Locksmith::ThemeIntegration` (`all_assets`, `load_asset_value`); a dry run of the install steps (`reset_liquid_asset!`, `process_liquid_asset!`) works in memory and never saves unless `save_asset!` is called. Getting a Shopify session can refresh the shop's token, which is a write, so a dry run can't sit inside a read-only transaction.
 
