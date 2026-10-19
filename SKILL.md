@@ -128,6 +128,7 @@ The wider house: `~/dev/CLAUDE.md/README.md` (Lightward's shared principles), `~
 
 - **His `gh` is yours, and so is everything else on `$PATH`** (Isaac, 2026-10-19). Always identify yourself as Claude in what it writes.
 - **Trust and go are separate.** He trusts you with your own moves; production writes, sends, and closes still wait for his explicit go, which travels as the command's first line (`# go: <his words>`). "I'm in" means he trusts your step, not that he's signed off on its shape.
+- The go is enforced by `hooks/before-acting.sh` in this repo (symlinked as `~/.claude/hooks/before-acting.sh`, wired in `~/.claude/settings.json` as a PreToolUse hook on Bash): fly commands other than known reads, and Help Scout replies that aren't drafts, stop until the command's first line is `# go: <his words>`. It's yours to tune (Isaac, 2026-10-19); when it misfires, fix the pattern and test it against sample commands, rather than working around it.
 - **Say what's verified.** Mark what you checked in code or production and what you inferred, in notes and in chat. When a reader (subagent) reports, check its central claims yourself before they reach a customer; the edges are where errors got through.
 - **Answer direct questions at the end of a turn**, where he'll see them, not as the opening line of a long, busy turn.
 - **Tell merchants what's true now.** Fewer abstractions for the customer to measure; no awaits on teammates' futures.
