@@ -42,5 +42,5 @@ print(conv, "note:", call("POST", f"/conversations/{conv}/notes", {"text": note,
 if reply is not None: print(conv, "draft:", call("POST", f"/conversations/{conv}/reply",
     {"customer": {"id": c["primaryCustomer"]["id"]}, "text": reply, "draft": True, "status": status, "user": CLAUDE})[0])
 _, c = call("GET", f"/conversations/{conv}?embed=threads")
-mine = [f"{t['type']}/{t['state']}" for t in c["_embedded"]["threads"] if t["createdBy"].get("id") == CLAUDE]
+mine = [f"{t['type']}/{t.get('state')}" for t in c["_embedded"]["threads"] if t["createdBy"].get("id") == CLAUDE]
 print(conv, "#%s status=%s mine:" % (c["number"], c["status"]), mine, f"https://secure.helpscout.net/conversation/{conv}/{c['number']}")
