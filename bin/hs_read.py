@@ -2,7 +2,8 @@
 
 usage:
   hs_read.py queue                         open conversations in each mailbox's Unassigned folder, with who spoke last
-  hs_read.py <conversation id> [--since <ISO time>] [--html]
+  hs_read.py <conversation id> [--new | --since <ISO time>] [--html]
+                                           --new: everything after the last reply or note from our side
                                            a conversation, oldest first; Beacon notes boiled down to the shop and page;
                                            --html prints each thread's raw body too
 
@@ -95,6 +96,13 @@ def show_conversation(cid, since=None, raw=False):
     print(f"subject: {c['subject']}")
     print(f"customer: {cust.get('first', '')} {cust.get('last', '')} <{cust.get('email')}> id={cust.get('id')}")
     print(f"ui: https://secure.helpscout.net/conversation/{cid}/{c['number']}")
+    if since == "new":
+        # everything after the last thing our side published (a sent reply or a note), so nothing in between is missed
+        ours = [t for t in c["_embedded"]["threads"]
+                if t["type"] in ("message", "note") and t.get("state") == "published"
+                and (t.get("createdBy") or {}).get("type") == "user" and "Technical Information" not in (t.get("body") or "")]
+        since = ours[0]["createdAt"] if ours else None
+        print(f"(new since {since or 'the start'})")
     for t in reversed(c["_embedded"]["threads"]):
         if since and t["createdAt"] < since:
             continue
@@ -156,5 +164,5 @@ if __name__ == "__main__":
     elif args[0] == "queue":
         show_queue()
     else:
-        since = args[args.index("--since") + 1] if "--since" in args else None
+        since = args[args.index("--since") + 1] if "--since" in args else ("new" if "--new" in args else None)
         show_conversation(int(args[0]), since=since, raw="--html" in args)

@@ -93,7 +93,7 @@ When the question is what a merchant's admin shows, walk it under staff imperson
 
 ## Helpers
 
-- `python3 -I ~/.claude/skills/support/bin/hs_read.py queue` lists each mailbox's Unassigned conversations with who spoke last and any drafts waiting; `hs_read.py <conversation id> [--since <ISO time>] [--html]` prints a conversation oldest first, Beacon notes boiled down to the shop and page, customer threads flagged when their HTML carries hidden-content markers. The token is cached in `~/.cache/support-with-claude/` for its lifetime.
+- `python3 -I ~/.claude/skills/support/bin/hs_read.py queue` lists each mailbox's Unassigned conversations with who spoke last and any drafts waiting; `hs_read.py <conversation id> [--new | --since <ISO time>] [--html]` prints a conversation oldest first (`--new` starts at our side's last reply or note, which is the way to read a thread that's come back: guessing a `--since` window once skipped two of a customer's three messages, #119150), Beacon notes boiled down to the shop and page, customer threads flagged when their HTML carries hidden-content markers. The token is cached in `~/.cache/support-with-claude/` for its lifetime.
 - `bin/prod_read.sh`, under Production.
 - `python3 -I ~/.claude/skills/support/bin/hs_post.py <conversation id> <note.html> <reply.html | -> [status]` posts a note (keeping the conversation's status) and a draft reply in your seat, or the note alone with `-` (status on send: closed, or pass `active` as a fourth argument when we owe a follow-up), refuses `<p>`, and prints what landed with the conversation's UI link. It gets its own token.
 - `bin/walk.js`, above.
