@@ -85,6 +85,10 @@ Use `bin/prod_read.sh <locksmith|mechanic> <script.rb> [--write] [NAME=value …
 - The `# go:` line has to sit on a command of its own. If a hook stops a command that also wrote a file (a heredoc script, say), the file was never written, so write it again before rerunning.
 - Staff runbooks live at private.lightward.guide, which you can't reach. Before improvising an operation, ask Isaac whether there's a runbook and whether he'd paste it.
 
+**Rollbar and New Relic are in bounds** (Isaac, 2026-10-20): Locksmith and Mechanic both report to them, and they're ours to tie into support whenever useful. An "internal error" a merchant sees is likely already in Rollbar with its backtrace. How each is reached (credentials, CLI or API) isn't written down yet; find out the first time a ticket needs it, and record it here.
+
+Locally, mechanic-api's specs need `ROLLBAR_ENV` set (it's a deploy variable, in neither `.env` nor `.env.default`): `ROLLBAR_ENV=test bundle exec rspec …`, with `export PATH="$HOME/.rbenv/shims:$PATH"` first.
+
 ## Seeing what the merchant sees
 
 Run browsers **headless** unless Isaac needs to be in the window (a sign-in, say): a visible window can take his focus, and Chrome's own prompts (like offering to translate) can sit on top of the page being read.
