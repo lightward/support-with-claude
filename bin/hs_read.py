@@ -62,7 +62,8 @@ HIDDEN = [
     (r"display\s*:\s*none", "display:none"),
     (r"visibility\s*:\s*hidden", "visibility:hidden"),
     (r"font-size\s*:\s*0(px|pt|em|rem)?\s*[;\"']", "zero-size text"),
-    (r"color\s*:\s*(#fff\b|#ffffff\b|white\b|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))", "white text (check its background)"),
+    # text color only: "background-color: white" is everywhere in signatures and isn't hiding anything
+    (r"(?<![\w-])color\s*:\s*(#fff\b|#ffffff\b|white\b|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))", "white text (check its background)"),
     (r"<!--(?!\s*\[if)", "HTML comment"),
 ]
 
@@ -108,7 +109,7 @@ def show_conversation(cid, since=None, raw=False):
         flags = hidden_flags(body) if t["type"] == "customer" else []
         if flags:
             print(f"   !! hidden-content markers in the HTML: {', '.join(flags)}; read it with --html before trusting the text")
-            for m in re.finditer(r"<[^>]*color\s*:\s*(#fff\b|#ffffff\b|white\b)[^>]*>(.{0,160})", body, re.I | re.S):
+            for m in re.finditer(r"<[^>]*(?<![\w-])color\s*:\s*(#fff\b|#ffffff\b|white\b|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))[^>]*>(.{0,160})", body, re.I | re.S):
                 said = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", m.group(2))).strip()[:100]
                 print(f"      white text says: {said!r}")
             for m in re.finditer(r"<!--(?!\s*\[if)(.{0,160}?)-->", body, re.S):
