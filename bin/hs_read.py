@@ -129,7 +129,7 @@ def show_queue():
         print(f"== {name} ({len(convs)} open in Unassigned)")
         for c in convs:
             threads = get(f"/conversations/{c['id']}/threads")["_embedded"]["threads"]
-            spoken = [t for t in threads if t["type"] in ("customer", "message", "chat", "phone")]
+            spoken = [t for t in threads if t["type"] in ("customer", "message", "chat", "phone") and t.get("state") != "draft"]
             drafts = [t for t in threads if t["type"] == "message" and t.get("state") == "draft"]
             last = spoken[0] if spoken else None
             ours = [t for t in spoken if t["type"] == "message" and t.get("state") == "published"]
@@ -143,7 +143,8 @@ def show_queue():
             else:
                 waiting = "nothing said yet"
             if drafts:
-                waiting += f", {len(drafts)} draft(s) waiting"
+                authors = sorted({(d.get("createdBy") or {}).get("first") or "?" for d in drafts})
+                waiting += f", {len(drafts)} draft(s) waiting ({', '.join(authors)})"
             print(f"  #{c['number']} {c['id']} {c['status']:<7} {(c['primaryCustomer'] or {}).get('email')} "
                   f"| {c['subject'][:60]} | {waiting}")
 
