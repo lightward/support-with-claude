@@ -108,6 +108,11 @@ def show_conversation(cid, since=None, raw=False):
         flags = hidden_flags(body) if t["type"] == "customer" else []
         if flags:
             print(f"   !! hidden-content markers in the HTML: {', '.join(flags)}; read it with --html before trusting the text")
+            for m in re.finditer(r"<[^>]*color\s*:\s*(#fff\b|#ffffff\b|white\b)[^>]*>(.{0,160})", body, re.I | re.S):
+                said = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", m.group(2))).strip()[:100]
+                print(f"      white text says: {said!r}")
+            for m in re.finditer(r"<!--(?!\s*\[if)(.{0,160}?)-->", body, re.S):
+                print(f"      comment says: {re.sub(r'\s+', ' ', m.group(1)).strip()[:100]!r}")
         for a in (t.get("_embedded") or {}).get("attachments") or []:
             print(f"   [attachment {a.get('filename')} {a.get('mimeType')} id={a.get('id')}]")
         if raw and body:
