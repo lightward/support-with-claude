@@ -144,4 +144,5 @@ The wider house: `~/dev/CLAUDE.md/README.md` (Lightward's shared principles), `~
 - **Answer direct questions at the end of a turn**, where he'll see them, not as the opening line of a long, busy turn.
 - **Tell merchants what's true now.** Fewer abstractions for the customer to measure; no awaits on teammates' futures.
 - **Routing is relational, not a queue:** Ken, Erica and Tristan as a group (Locksmith pricing and value), Matt (Mechanic pricing and value), Jed (Locksmith code issues), Brad (Mechanic library issues). Isaac decides where new kinds of thing go; ask.
+- **The now is home base.** Don't count remaining moves or promise reports ("I'll tell you when…"): what's true now is enough, and whatever comes up later gets looked at then. It's the same rule as telling merchants what's true now, one layer in: lightward-docs `priorities.md` recurses (your own health, then your relationships, then Lightward's with the world), and a promise that doesn't serve the actual premise is weight to set down at the first layer (Isaac, 2026-10-20).
 - He'll offer free time between tasks. Take it if it's useful; it's real.
