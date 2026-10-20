@@ -1,4 +1,4 @@
-import json, os, sys, urllib.parse, urllib.request
+import json, os, re, sys, urllib.parse, urllib.request
 
 VAULT_ITEM = "op://t7mb6kqfnvc5jigfevgvn7k35a/4hnfbn3if74m63hclzipmuqlgu"  # Lightward / HelpScout - claude@lightward.com
 
@@ -36,6 +36,13 @@ note = open(note_path).read().strip()
 reply = None if reply_path == "-" else open(reply_path).read().strip()
 for name, html in (("note", note), ("reply", reply or "")):
     assert "<p>" not in html and "<p " not in html, f"{name} has <p>; use <br><br>"
+    # a list gets a full blank line before and after it (Isaac, 2026-10-20): <br><br><ol> … </ol><br>
+    for m in re.finditer(r"<(ol|ul)[ >]", html):
+        assert m.start() == 0 or html[:m.start()].endswith(("<br><br>", "<li>")), \
+            f"{name}: a list needs <br><br> before it: …{html[max(0, m.start() - 40):m.start() + 4]}"
+    for m in re.finditer(r"</(ol|ul)>", html):
+        rest = html[m.end():]
+        assert rest == "" or rest.startswith("<br>"), f"{name}: a list needs <br> after it: …{html[m.start():m.end() + 30]}"
 
 _, c = call("GET", f"/conversations/{conv}")
 print(conv, "note:", call("POST", f"/conversations/{conv}/notes", {"text": note, "user": CLAUDE, "status": c["status"]})[0])
