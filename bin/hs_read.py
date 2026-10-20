@@ -131,8 +131,12 @@ def show_queue():
             spoken = [t for t in threads if t["type"] in ("customer", "message", "chat", "phone")]
             drafts = [t for t in threads if t["type"] == "message" and t.get("state") == "draft"]
             last = spoken[0] if spoken else None
+            ours = [t for t in spoken if t["type"] == "message" and t.get("state") == "published"]
+            handler = (ours[0].get("createdBy") or {}) if ours else {}
             if last and last["type"] == "customer":
                 waiting = f"customer spoke last {last['createdAt'][:16]}"
+                if handler.get("id") and handler.get("id") != CLAUDE:
+                    waiting += f" (after {handler.get('first') or handler.get('email')}'s reply: theirs)"
             elif last:
                 waiting = f"we replied last {last['createdAt'][:16]}"
             else:

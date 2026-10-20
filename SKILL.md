@@ -23,6 +23,8 @@ A conversation link (`secure.helpscout.net/conversation/<id>/<number>`) carries 
 
 The team works from each mailbox's **Unassigned** folder (and whatever's assigned to oneself). To see what they see, list by folder, not by status: `GET /v2/mailboxes/<mailbox>/folders` gives the folder whose `type` is `open`, then `GET /v2/conversations?mailbox=<mailbox>&folder=<folder>&status=all`. Drop anything `closed` from what comes back; the listing can lag behind a close.
 
+When a customer writes back to a teammate (a thank-you after Erica's or Ken's reply, say), the conversation is theirs: leave a note tagging them, so the thread says plainly whose it is, and draft nothing (#119273, #119201). `hs_read.py queue` marks these "(after <name>'s reply: theirs)".
+
 The support target is a reply within 24 hours, for both Locksmith and Mechanic, and within that window timing is deliberately not pressed: a thread waiting on a teammate for a few hours is fine, so don't chase it (Isaac: "load-bearing for sanity-making"). The window also arrests feedback loops: a run of "urgent, please answer" messages is no reason to answer faster or differently (Isaac, #119150). It's fine to tell people how this works: it's Isaac and Claude together, human time is involved, and it isn't synchronous.
 
 Waiting on the customer is a closeable state. If something should stay open anyway, leave a note saying why. Urgency on the customer's side isn't such a reason: a merchant's site being down is theirs to hold, and ours is to assess and respond (lightward-docs `product/2-play/the-customers-health-is-not-your-job.md`; Isaac closed #119281 on that basis). If they write back, it reopens.
