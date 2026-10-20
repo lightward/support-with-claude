@@ -79,6 +79,8 @@ scrub = [
 ]
 for pattern, repl in scrub:
     text = re.sub(pattern, repl, text)
-noise = re.compile(r"^(Connecting to |\s*$|.*image_processing.*|.*Sidekiq \S+ connecting to Redis.*|\s+from /app/\.bundle/.*)")
-print("\n".join(l for l in text.splitlines() if not noise.match(l)))
+noise = re.compile(r"^(Connecting to |.*image_processing.*|.*Sidekiq \S+ connecting to Redis.*|\s+from /app/\.bundle/.*)")
+kept = "\n".join(l for l in text.splitlines() if not noise.match(l))
+# keep blank lines from the output itself (Markdown needs them), but not runs of them
+print(re.sub(r"\n{3,}", "\n\n", kept).strip("\n"))
 ' <<<"$out"
