@@ -20,4 +20,5 @@ t deny "prod_read.sh by ~ path without go" '~/.claude/skills/support/bin/prod_re
 t pass "prod_read.sh with go" $'# go: yes, read\n~/.claude/skills/support/bin/prod_read.sh locksmith /tmp/x.rb'
 t pass "prod_read.sh named in prose" 'grep -n prod_read SKILL.md'
 t pass "chmod of prod_read.sh" 'chmod +x bin/prod_read.sh && ls'
+t pass "support_shop.sh: standing go" '~/.claude/skills/support/bin/support_shop.sh 9yytey-2f info@example.com'
 exit $fail
