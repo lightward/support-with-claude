@@ -54,3 +54,11 @@ if reply is not None: print(conv, "draft:", call("POST", f"/conversations/{conv}
 _, c = call("GET", f"/conversations/{conv}?embed=threads")
 mine = [f"{t['type']}/{t.get('state')}" for t in c["_embedded"]["threads"] if t["createdBy"].get("id") == CLAUDE]
 print(conv, "#%s status=%s mine:" % (c["number"], c["status"]), mine, f"https://secure.helpscout.net/conversation/{conv}/{c['number']}")
+
+# reply at the customer's scale (lightward-ai's "a single line for a single line"; #119310): a nudge, not a refusal
+if reply is not None:
+    words = lambda html: len(re.sub(r"<[^>]+>", " ", html or "").split())
+    said = next((t for t in c["_embedded"]["threads"] if t["type"] == "customer"), None)
+    theirs, ours = words(said.get("body") if said else ""), words(reply)
+    if theirs and ours > max(80, 3 * theirs):
+        print(f"   note: this reply is {ours} words to their {theirs}. Is that their scale? (A short message often wants a short answer.)")
