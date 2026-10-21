@@ -47,18 +47,20 @@ machine=$(cat "$cache" 2>/dev/null || true)
 if [[ -z "$machine" ]]; then machine=$(pick_machine); echo "$machine" > "$cache"; fi
 [[ -n "$machine" ]] || { echo "no started web machine found for $app" >&2; exit 1; }
 
+# a unique name per run: several runs can share a machine at once (parallel forks did, 2026-10-21)
+run_id="cw_$(date +%s)_$$_$RANDOM"
 if [[ "$mode" == read ]]; then
   outer='ActiveRecord::Base.transaction do
   ActiveRecord::Base.connection.execute("SET LOCAL statement_timeout = '"'"'30s'"'"'")
-  ActiveRecord::Base.uncached { load "/tmp/cw_inner.rb" }
+  ActiveRecord::Base.uncached { load "/tmp/'"$run_id"'_inner.rb" }
   raise ActiveRecord::Rollback
 end'
 else
-  outer='load "/tmp/cw_inner.rb"'
+  outer='load "/tmp/'"$run_id"'_inner.rb"'
 fi
 inner_b64=$(base64 < "$script" | tr -d '\n')
 outer_b64=$(printf '%s\n' "$outer" | base64 | tr -d '\n')
-remote="echo $inner_b64 | base64 -d > /tmp/cw_inner.rb && echo $outer_b64 | base64 -d > /tmp/cw_outer.rb && ${envs[*]:-} timeout 240 bin/rails runner /tmp/cw_outer.rb; rm -f /tmp/cw_inner.rb /tmp/cw_outer.rb"
+remote="echo $inner_b64 | base64 -d > /tmp/${run_id}_inner.rb && echo $outer_b64 | base64 -d > /tmp/${run_id}_outer.rb && ${envs[*]:-} timeout 240 bin/rails runner /tmp/${run_id}_outer.rb; rm -f /tmp/${run_id}_inner.rb /tmp/${run_id}_outer.rb"
 
 run() { flyctl ssh console -a "$app" --machine "$machine" -C "sh -c '$remote'" 2>&1; }
 out=$(run) || true
