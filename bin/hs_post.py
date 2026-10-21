@@ -45,7 +45,10 @@ for name, html in (("note", note), ("reply", reply or "")):
         assert rest == "" or rest.startswith("<br>"), f"{name}: a list needs <br> after it: …{html[m.start():m.end() + 30]}"
 
 _, c = call("GET", f"/conversations/{conv}")
-print(conv, "note:", call("POST", f"/conversations/{conv}/notes", {"text": note, "user": CLAUDE, "status": c["status"]})[0])
+# a note keeps the conversation's status, except that a closed conversation getting a draft is reopened, so the draft
+# shows in Unassigned (a draft's own status only takes effect when it's sent; Isaac found one hidden in Closed, #119370)
+note_status = "active" if (reply is not None and c["status"] == "closed") else c["status"]
+print(conv, "note:", call("POST", f"/conversations/{conv}/notes", {"text": note, "user": CLAUDE, "status": note_status})[0])
 if reply is not None: print(conv, "draft:", call("POST", f"/conversations/{conv}/reply",
     {"customer": {"id": c["primaryCustomer"]["id"]}, "text": reply, "draft": True, "status": status, "user": CLAUDE})[0])
 _, c = call("GET", f"/conversations/{conv}?embed=threads")

@@ -96,6 +96,13 @@ def show_conversation(cid, since=None, raw=False):
     print(f"subject: {c['subject']}")
     print(f"customer: {cust.get('first', '')} {cust.get('last', '')} <{cust.get('email')}> id={cust.get('id')}")
     print(f"ui: https://secure.helpscout.net/conversation/{cid}/{c['number']}")
+    # the store details Locksmith and Mechanic set on the customer (Shopify domain and email, app status): the same as
+    # Help Scout's sidebar. Check these before asking a customer which store they mean.
+    if cust.get("id"):
+        props = (get(f"/customers/{cust['id']}").get("_embedded") or {}).get("properties") or []
+        known = [f"{p['name']}: {p.get('text') or p.get('value')}" for p in props if p.get("text") or p.get("value")]
+        if known:
+            print("store details: " + "; ".join(known))
     if since == "new":
         # everything after the last thing our side published (a sent reply or a note), so nothing in between is missed
         ours = [t for t in c["_embedded"]["threads"]
