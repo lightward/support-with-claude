@@ -152,7 +152,12 @@ def show_queue():
             if last and last["type"] == "customer":
                 waiting = f"customer spoke last {last['createdAt'][:16]}"
                 if handler.get("id") and handler.get("id") != CLAUDE:
-                    waiting += f" (after {handler.get('first') or handler.get('email')}'s reply: theirs)"
+                    # tagged = a note @mentioning someone since the customer last wrote, which is how they're brought
+                    # back into the loop without keeping the queue open (Isaac, 2026-10-21)
+                    tagged = any(t["type"] == "note" and t["createdAt"] > last["createdAt"]
+                                 and "mention-highlight" in (t.get("body") or "") for t in threads)
+                    whose = handler.get("first") or handler.get("email")
+                    waiting += f" (after {whose}'s reply: theirs, {'tagged' if tagged else 'NEEDS A TAG'})"
             elif last:
                 waiting = f"we replied last {last['createdAt'][:16]}"
             else:
