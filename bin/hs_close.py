@@ -29,8 +29,9 @@ def main():
     for cid in ids:
         c = hs_read.get(f"/conversations/{cid}?embed=threads")
         drafts = [t for t in c["_embedded"]["threads"] if t["type"] == "message" and t.get("state") == "draft"]
-        if c["status"] == "closed":
-            print(f"#{c['number']} {cid}: already closed")
+        if c["status"] in ("closed", "spam"):
+            # spam is already sorted (by Help Scout's filter or a teammate); closing it would undo that (#119483)
+            print(f"#{c['number']} {cid}: already {c['status']}, left as is")
             continue
         if drafts and not with_drafts:
             print(f"#{c['number']} {cid}: skipped, {len(drafts)} draft(s) waiting (send or discard first, or --with-drafts)")
