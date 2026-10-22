@@ -31,12 +31,20 @@ grep -qE '(^|[;&|(`])[[:space:]]*((ba)?sh[[:space:]]+)?[^[:space:];&|]*prod_read
 text="$cmd"
 for f in $(grep -oE '[^[:space:]"'\'']+\.(py|rb|sh|js)\b' <<<"$cmd"); do
   f="${f/#\~/$HOME}"
+  # this hook's own tests hold sample acts as strings; running them is not an act
+  [[ "$f" == *test-before-acting.sh ]] && continue
   [[ -f "$f" ]] && text+=$'\n'"$(cat "$f")"
 done
 # /reply as the API endpoint, not the start of a filename like reply.html
 if grep -q 'helpscout' <<<"$text" && grep -qE '/reply([^[:alnum:]._-]|$)' <<<"$text" \
   && ! grep -qE 'draft[\\"]*[[:space:]]*[:=]>?[[:space:]]*(true|True)' <<<"$text"; then
   stop "a Help Scout reply that isn't a draft would go to a customer"
+fi
+
+# Help Scout: changing a conversation's status (closing it, say) is an act at the team's seat. hs_close.py carries
+# the PATCH in its own code, so reading the scripts a command runs catches it too.
+if grep -q 'helpscout' <<<"$text" && grep -qE '["'\'']/status["'\'']' <<<"$text"; then
+  stop "a Help Scout status change (closing a conversation, say)"
 fi
 
 exit 0

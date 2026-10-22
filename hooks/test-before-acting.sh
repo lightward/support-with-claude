@@ -21,4 +21,10 @@ t pass "prod_read.sh with go" $'# go: yes, read\n~/.claude/skills/support/bin/pr
 t pass "prod_read.sh named in prose" 'grep -n prod_read SKILL.md'
 t pass "chmod of prod_read.sh" 'chmod +x bin/prod_read.sh && ls'
 t pass "support_shop.sh: standing go" '~/.claude/skills/support/bin/support_shop.sh 9yytey-2f info@example.com'
+t deny "hs_close.py without go" 'python3 -I ~/.claude/skills/support/bin/hs_close.py 3490759643'
+t pass "hs_close.py with go" $'# go: yup close\npython3 -I ~/.claude/skills/support/bin/hs_close.py 3490759643'
+t deny "inline status PATCH without go" $'python3 -c \'urllib.request.Request("https://api.helpscout.net/v2/conversations/1", method="PATCH", data=json.dumps({"op":"replace","path":"/status","value":"closed"}))\''
+t pass "hs_read.py queue" 'python3 -I ~/.claude/skills/support/bin/hs_read.py queue'
+t pass "hs_post.py note and draft" 'python3 -I ~/.claude/skills/support/bin/hs_post.py 1 /tmp/n.html /tmp/r.html --cc a@example.com'
+t pass "running these tests" 'bash hooks/test-before-acting.sh | grep -c "^ok"'
 exit $fail

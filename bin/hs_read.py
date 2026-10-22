@@ -175,6 +175,13 @@ def show_queue():
                                  and "mention-highlight" in (t.get("body") or "") for t in threads)
                     whose = handler.get("first") or handler.get("email")
                     waiting += f" (after {whose}'s reply: theirs, {'tagged' if tagged else 'NEEDS A TAG'})"
+                else:
+                    # a routing note since the customer last wrote (a value conversation tagged to its holders, a
+                    # teammate named in a new conversation) means it's handled: say so, so a pass doesn't re-read it
+                    routed = sorted({m for t in threads if t["type"] == "note" and t["createdAt"] > last["createdAt"]
+                                     for m in re.findall(r'mention-highlight">@([\w.-]+)<', t.get("body") or "")})
+                    if routed:
+                        waiting += " (routed: " + " ".join("@" + m for m in routed) + ")"
             elif last:
                 waiting = f"we replied last {last['createdAt'][:16]}"
             else:
