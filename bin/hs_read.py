@@ -93,7 +93,7 @@ def show_conversation(cid, since=None, raw=False):
     mbox = MAILBOXES.get(c["mailboxId"], c["mailboxId"])
     cust = c.get("primaryCustomer") or {}
     print(f"#{c['number']} ({cid}) {mbox} status={c['status']} assignee={(c.get('assignee') or {}).get('email')}")
-    print(f"subject: {c['subject']}")
+    print(f"subject: {c.get('subject') or '(no subject)'}")
     print(f"customer: {cust.get('first', '')} {cust.get('last', '')} <{cust.get('email')}> id={cust.get('id')}")
     print(f"ui: https://secure.helpscout.net/conversation/{cid}/{c['number']}")
     # the store details Locksmith and Mechanic set on the customer (Shopify domain and email, app status): the same as
@@ -190,7 +190,7 @@ def show_queue():
                 authors = sorted({(d.get("createdBy") or {}).get("first") or "?" for d in drafts})
                 waiting += f", {len(drafts)} draft(s) waiting ({', '.join(authors)})"
             print(f"  #{c['number']} {c['id']} {c['status']:<7} {(c['primaryCustomer'] or {}).get('email')} "
-                  f"| {c['subject'][:60]} | {waiting}")
+                  f"| {(c.get('subject') or '(no subject)')[:60]} | {waiting}")
 
 
 if __name__ == "__main__":

@@ -27,4 +27,6 @@ t deny "inline status PATCH without go" $'python3 -c \'urllib.request.Request("h
 t pass "hs_read.py queue" 'python3 -I ~/.claude/skills/support/bin/hs_read.py queue'
 t pass "hs_post.py note and draft" 'python3 -I ~/.claude/skills/support/bin/hs_post.py 1 /tmp/n.html /tmp/r.html --cc a@example.com'
 t pass "running these tests" 'bash hooks/test-before-acting.sh | grep -c "^ok"'
+t deny "hs_post.py --send without go" 'python3 -I ~/.claude/skills/support/bin/hs_post.py 1 /tmp/n.html /tmp/r.html --send'
+t pass "hs_post.py --send with go" $'# go: php replies, send them\npython3 -I ~/.claude/skills/support/bin/hs_post.py 1 /tmp/n.html /tmp/r.html --send'
 exit $fail

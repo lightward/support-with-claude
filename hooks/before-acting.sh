@@ -41,6 +41,9 @@ if grep -q 'helpscout' <<<"$text" && grep -qE '/reply([^[:alnum:]._-]|$)' <<<"$t
   stop "a Help Scout reply that isn't a draft would go to a customer"
 fi
 
+# hs_post.py drafts by default; --send sends to the customer, and the script's own draft flag can't speak for it
+grep -qE 'hs_post\.py([[:space:]].*)?[[:space:]]--send([[:space:]]|$)' <<<"$cmd" && stop "hs_post.py --send would send a reply to a customer"
+
 # Help Scout: changing a conversation's status (closing it, say) is an act at the team's seat. hs_close.py carries
 # the PATCH in its own code, so reading the scripts a command runs catches it too.
 if grep -q 'helpscout' <<<"$text" && grep -qE '["'\'']/status["'\'']' <<<"$text"; then

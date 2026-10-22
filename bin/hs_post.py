@@ -32,11 +32,15 @@ def call(method, path, body=None):
 # --cc copies the draft to an address the customer asked replies to go to (agencies, app-listing relays: #119405,
 # #119459); it's on the draft, so Isaac sees it before sending
 # a note without a status reopens the conversation (#119285), so each note carries the conversation's current one
-argv, cc = [], []
+argv, cc, send = [], [], False
 it = iter(sys.argv[1:])
 for a in it:
     if a == "--cc":
         cc.append(next(it))
+    elif a == "--send":
+        # sends the reply instead of drafting it: only under a standing go Isaac has given for a kind of reply (the
+        # PHP-CVE wave, 2026-10-22), and the before-acting hook stops it without a go line on the command
+        send = True
     else:
         argv.append(a)
 for addr in cc:
@@ -44,6 +48,7 @@ for addr in cc:
 conv, note_path, reply_path = int(argv[0]), argv[1], argv[2]
 status = argv[3] if len(argv) > 3 else "closed"
 assert not (cc and reply_path == "-"), "--cc needs a reply to copy"
+assert not (send and reply_path == "-"), "--send needs a reply to send"
 assert status in ("active", "pending", "closed"), status
 note = open(note_path).read().strip()
 reply = None if reply_path == "-" else open(reply_path).read().strip()
@@ -62,8 +67,10 @@ _, c = call("GET", f"/conversations/{conv}")
 # shows in Unassigned (a draft's own status only takes effect when it's sent; Isaac found one hidden in Closed, #119370)
 note_status = "active" if (reply is not None and c["status"] == "closed") else c["status"]
 print(conv, "note:", call("POST", f"/conversations/{conv}/notes", {"text": note, "user": CLAUDE, "status": note_status})[0])
-if reply is not None: print(conv, "draft:", call("POST", f"/conversations/{conv}/reply",
-    {"customer": {"id": c["primaryCustomer"]["id"]}, "text": reply, "draft": True, "status": status, "user": CLAUDE,
+# the before-acting hook reads this file and passes it as a drafter on the literal draft flag above; --send is caught
+# by its own rule on the command line
+if reply is not None: print(conv, "sent:" if send else "draft:", call("POST", f"/conversations/{conv}/reply",
+    {"customer": {"id": c["primaryCustomer"]["id"]}, "text": reply, "draft": True if not send else False, "status": status, "user": CLAUDE,
      **({"cc": cc} if cc else {})})[0])
 _, c = call("GET", f"/conversations/{conv}?embed=threads")
 mine = [f"{t['type']}/{t.get('state')}" for t in c["_embedded"]["threads"] if t["createdBy"].get("id") == CLAUDE]
