@@ -139,11 +139,15 @@ def show_conversation(cid, since=None, raw=False):
                 print(f"      comment says: {re.sub(r'\s+', ' ', m.group(1)).strip()[:100]!r}")
         for a in (t.get("_embedded") or {}).get("attachments") or []:
             print(f"   [attachment {a.get('filename')} {a.get('mimeType')} id={a.get('id')}]")
-        # a screenshot pasted into an email arrives inline, in the body, not as an attachment (#119310's looked absent)
-        for m in re.finditer(r"<img[^>]*>", body):
-            src = re.search(r'src="([^"]+)"', m.group(0))
-            if src and not src.group(1).startswith("data:"):
-                print(f"   [inline image {src.group(1)}]")
+        # a screenshot pasted into an email arrives inline, in the body, not as an attachment (#119310's looked absent).
+        # Help Scout keeps those in its own /inline/ store; other images are signatures and logos, or tracking pixels
+        # that tell a sender's tool the mail was opened (#119449's), so they're counted, not listed: fetch none of them
+        srcs = [m.group(1) for m in re.finditer(r'<img[^>]*src="([^"]+)"', body) if not m.group(1).startswith("data:")]
+        pasted = [u for u in srcs if re.match(r"https://[a-z0-9]+\.cloudfront\.net/inline/", u)]
+        for u in pasted:
+            print(f"   [inline image {u}]")
+        if len(srcs) > len(pasted):
+            print(f"   [{len(srcs) - len(pasted)} other remote image(s): signatures, logos or tracking; not fetched]")
         if raw and body:
             print("   [html] " + body)
 
