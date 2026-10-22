@@ -110,13 +110,21 @@ def show_conversation(cid, since=None, raw=False):
                 and (t.get("createdBy") or {}).get("type") == "user" and "Technical Information" not in (t.get("body") or "")]
         since = ours[0]["createdAt"] if ours else None
         print(f"(new since {since or 'the start'})")
+    # each thread carries the status it left the conversation in; a change is shown, so a message that arrived as
+    # spam (and a teammate's "marked as Active" rescue of it, #119402) reads as what it was
+    status = None
     for t in reversed(c["_embedded"]["threads"]):
+        moved = t.get("status") not in (None, "nochange", status)
+        if moved:
+            status = t["status"]
         if since and t["createdAt"] < since:
             continue
         who = t.get("createdBy") or {}
         tag = "CLAUDE" if who.get("id") == CLAUDE else (who.get("email") or who.get("type"))
         body = t.get("body") or ""
-        print(f"\n--- {t['createdAt']} {t['type']}/{t.get('state')} {tag}")
+        print(f"\n--- {t['createdAt']} {t['type']}/{t.get('state')} {tag}{f' (→ {status})' if moved else ''}")
+        if t["type"] == "lineitem" and (t.get("action") or {}).get("text"):
+            print(t["action"]["text"])
         if t["type"] == "note" and "Technical Information" in body and "Beacon" in body:
             print(beacon(body))
         elif body:
