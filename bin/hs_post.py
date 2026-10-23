@@ -27,16 +27,20 @@ def call(method, path, body=None):
         raw = resp.read()
         return resp.status, (json.loads(raw) if raw else None)
 
-# usage: hs_post.py <conversation id> <note.html> <reply.html | -> [status] [--cc address …]
+# usage: hs_post.py <conversation id> <note.html> <reply.html | -> [status] [--cc address …] [--check]
 #   (reply posted as a draft; status on send defaults to closed; "-" posts the note alone)
+# --check runs every check (formatting, the scale nudge) and says what would land, then stops: nothing is posted.
+# Posting can't be undone (no edits, no deleting drafts), so check first whenever a nudge might change the draft.
 # --cc copies the draft to an address the customer asked replies to go to (agencies, app-listing relays: #119405,
 # #119459); it's on the draft, so Isaac sees it before sending
 # a note without a status reopens the conversation (#119285), so each note carries the conversation's current one
-argv, cc, send = [], [], False
+argv, cc, send, check = [], [], False, False
 it = iter(sys.argv[1:])
 for a in it:
     if a == "--cc":
         cc.append(next(it))
+    elif a == "--check":
+        check = True
     elif a == "--send":
         # sends the reply instead of drafting it: only under a standing go Isaac has given for a kind of reply (the
         # PHP-CVE wave, 2026-10-22), and the before-acting hook stops it without a go line on the command
@@ -62,10 +66,26 @@ for name, html in (("note", note), ("reply", reply or "")):
         rest = html[m.end():]
         assert rest == "" or rest.startswith("<br>"), f"{name}: a list needs <br> after it: …{html[m.start():m.end() + 30]}"
 
-_, c = call("GET", f"/conversations/{conv}")
+_, c = call("GET", f"/conversations/{conv}?embed=threads")
+
+# reply at the customer's scale (lightward-ai's "a single line for a single line"; #119310): a nudge, not a refusal.
+# Measured before posting, so --check can show it while the draft can still change (#119509)
+if reply is not None:
+    words = lambda html: len(re.sub(r"<[^>]+>", " ", html or "").split())
+    said = next((t for t in c["_embedded"]["threads"] if t["type"] == "customer"), None)
+    theirs, ours = words(said.get("body") if said else ""), words(reply)
+    print(conv, f"scale: {ours} words to their {theirs}")
+    if theirs and ours > max(80, 3 * theirs):
+        print(f"   note: this reply is {ours} words to their {theirs}. Is that their scale? (A short message often wants a short answer.)")
+
 # a note keeps the conversation's status, except that a closed conversation getting a draft is reopened, so the draft
 # shows in Unassigned (a draft's own status only takes effect when it's sent; Isaac found one hidden in Closed, #119370)
 note_status = "active" if (reply is not None and c["status"] == "closed") else c["status"]
+if check:
+    print(conv, "#%s is %s; would post: note (leaving it %s)%s" % (c["number"], c["status"], note_status,
+        "" if reply is None else f", {'reply SENT' if send else 'draft'} (status on send: {status})" + (f", cc {cc}" if cc else "")))
+    print(conv, "checked; nothing posted")
+    sys.exit(0)
 print(conv, "note:", call("POST", f"/conversations/{conv}/notes", {"text": note, "user": CLAUDE, "status": note_status})[0])
 # the before-acting hook reads this file and passes it as a drafter on the literal draft flag above; --send is caught
 # by its own rule on the command line
@@ -79,10 +99,3 @@ if cc:
     d = next((t for t in c["_embedded"]["threads"] if t.get("state") == "draft" and t["createdBy"].get("id") == CLAUDE), {})
     print(conv, "draft cc:", d.get("cc"))
 
-# reply at the customer's scale (lightward-ai's "a single line for a single line"; #119310): a nudge, not a refusal
-if reply is not None:
-    words = lambda html: len(re.sub(r"<[^>]+>", " ", html or "").split())
-    said = next((t for t in c["_embedded"]["threads"] if t["type"] == "customer"), None)
-    theirs, ours = words(said.get("body") if said else ""), words(reply)
-    if theirs and ours > max(80, 3 * theirs):
-        print(f"   note: this reply is {ours} words to their {theirs}. Is that their scale? (A short message often wants a short answer.)")
