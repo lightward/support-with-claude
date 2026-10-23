@@ -47,7 +47,7 @@ Waiting on the customer is a closeable state. Working a conversation that's alre
 
 ## Reaching Help Scout
 
-The credentials live in 1Password, in the team vault "Lightward", item "HelpScout - claude@lightward.com" (`op://t7mb6kqfnvc5jigfevgvn7k35a/4hnfbn3if74m63hclzipmuqlgu`, fields `app id`, `app secret`; they reach every mailbox). The `op` CLI is connected to the 1Password app, so a read may ask Isaac for Touch ID. Never print them. (`~/dev/mechanic-api/.env` has the same pair as `CLAUDE_HELPSCOUT_APP_ID`/`_SECRET`; `hs_post.py` falls back to it.) The helpers get and cache the token; to call the API by hand, `hs_read.token()` and `hs_read.get(path)` (paths start at `/conversations…`, not `/v2/…`).
+The credentials live in 1Password, in the team vault "Lightward", item "HelpScout - claude@lightward.com" (`op://t7mb6kqfnvc5jigfevgvn7k35a/4hnfbn3if74m63hclzipmuqlgu`, fields `app id`, `app secret`; they reach every mailbox). The `op` CLI is connected to the 1Password app, so a read may ask Isaac for Touch ID; if he isn't there, it waits and then fails (`op read` exiting 1, from `rollbar_shop.py` too). Ask him to arm it and retry. Never print them. (`~/dev/mechanic-api/.env` has the same pair as `CLAUDE_HELPSCOUT_APP_ID`/`_SECRET`; `hs_post.py` falls back to it.) The helpers get and cache the token; to call the API by hand, `hs_read.token()` and `hs_read.get(path)` (paths start at `/conversations…`, not `/v2/…`).
 
 What the API does, learned the hard way:
 
@@ -108,7 +108,9 @@ Locally, mechanic-api's specs need `ROLLBAR_ENV=test bundle exec rspec …`, wit
 
 When a merchant says *every* lock stopped working at once and the storefront checks out from outside, suspect their own browser first: remembered access (a passcode, or a signed-in account with an accepted tag) passes every lock. Send the locksmith.guide FAQ "why isn't my remote key condition working", with a fresh private window as the test (Isaac, #119292).
 
-Storefronts rate-limit plain fetches by address. If they start answering **429** (often `local_rate_limited`), check whether a VPN is on (Isaac's ExpressVPN made my fetches look like a crowd, 2026-10-22), then stop fetching for a while. A storefront that refuses automated fetches isn't a fault to report: ask the merchant to check, and say why.
+Storefronts rate-limit plain fetches by address. If they start answering **429** (often `local_rate_limited`), check whether a VPN is on (Isaac's ExpressVPN made my fetches look like a crowd, 2026-10-22), then stop fetching for a while. A storefront that refuses automated fetches isn't a fault to report: ask the merchant to check, and say why. A headless Chrome session (Playwright, a throwaway profile, cookies kept) fares much better than curl: Isaac's idea, and about twenty page loads went through with no 429 the day plain curl was getting them (#119518). Count what's *visible* (`offsetParent`, non-zero height), not what's in the HTML: a search page held 22 links to locked products, none of them shown.
+
+A storefront password a merchant sends us is theirs to share and ours to use with Isaac's go, read-only (#119518). Pass it through an environment variable so it's never printed, and never write it into a note. Shopify's password field can sit hidden behind an "Enter using password" toggle, so set its value and submit its form rather than filling it.
 
 Run browsers **headless** unless Isaac needs to be in the window (a sign-in, say): a visible window can take his focus, and Chrome's own prompts can sit on top of the page being read.
 
