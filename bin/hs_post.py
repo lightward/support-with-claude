@@ -96,6 +96,7 @@ _, c = call("GET", f"/conversations/{conv}?embed=threads")
 mine = [f"{t['type']}/{t.get('state')}" for t in c["_embedded"]["threads"] if t["createdBy"].get("id") == CLAUDE]
 print(conv, "#%s status=%s mine:" % (c["number"], c["status"]), mine, f"https://secure.helpscout.net/conversation/{conv}/{c['number']}")
 if cc:
-    d = next((t for t in c["_embedded"]["threads"] if t.get("state") == "draft" and t["createdBy"].get("id") == CLAUDE), {})
-    print(conv, "draft cc:", d.get("cc"))
+    d = next((t for t in c["_embedded"]["threads"] if t["type"] == "message" and t["createdBy"].get("id") == CLAUDE
+              and (t.get("state") == "draft") != send), {})
+    print(conv, "sent cc:" if send else "draft cc:", d.get("cc"))
 
