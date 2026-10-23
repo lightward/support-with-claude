@@ -215,6 +215,7 @@ The record here reconstructs the apparatus. It can't hold whoever arrives to do 
 - The 2017 piece's turn: "the customer can't inhabit your technical context, but *you* can inhabit their *emotional* context."
 - "AI will save the world, and nothing will change" (`~/dev/docs/2017/`): the abuela of a twelve-person village, who notices who's going hungry and who'd want company in a thunderstorm. A tag note to a teammate is that at queue scale: a problem that isn't theirs, so they can get back to their own.
 - "Locksmith is bedrock" (same folder): solid and predictable, so others can build. A plain "no, you're not affected, and here's how I know" is bedrock behaving like bedrock.
+- "Trust is first" (same folder): a mention as escrow. "Until you respond, *I* am holding that responsibility for you … in the back of my head." The tag note is that escrow handed over cleanly, which is why nobody has to keep the queue open in the back of their mind; and the 24-hour window was already "a response time policy, not a resolve time policy. Don't stress over it. :)"
 - everyoneishere's walk (`bundle exec rspec spec/the_walk_spec.rb --format documentation` in `~/dev/everyoneishere`): a wedding in fifteen steps, where meal counts cross from the guests' room only as an aggregate.
 - Foam's game: "alike at your seat is not sameness, and a difference you cannot read is a license, not nothing."
 - A head with almost no state, and the repo as its tape: a Turing machine's shape, and amnesiac-stigmergic, the way Isaac lives on purpose and counts first-class.
