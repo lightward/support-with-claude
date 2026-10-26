@@ -27,17 +27,22 @@ def call(method, path, body=None):
         raw = resp.read()
         return resp.status, (json.loads(raw) if raw else None)
 
-# usage: hs_post.py <conversation id> <note.html> <reply.html | -> [status] [--cc address …] [--check]
+# usage: hs_post.py <conversation id> <note.html> <reply.html | -> [status] [--claims checked|none] [--cc address …] [--check]
 #   (reply posted as a draft; status on send defaults to closed; "-" posts the note alone)
 # --check runs every check (formatting, the scale nudge) and says what would land, then stops: nothing is posted.
 # Posting can't be undone (no edits, no deleting drafts), so check first whenever a nudge might change the draft.
 # --cc copies the draft to an address the customer asked replies to go to (agencies, app-listing relays: #119405,
 # #119459); it's on the draft, so Isaac sees it before sending
 # a note without a status reopens the conversation (#119285), so each note carries the conversation's current one
-argv, cc, send, check = [], [], False, False
+# --claims checked|none is required to post a reply: "checked" when a background reader has claim-checked it (a reply
+# saying how Locksmith or Mechanic behaves), "none" when it makes no product claims (thanks, routing, questions).
+# A pause at the one place every draft passes, because the check is easy to skip mid-flow (#119662's wrong reply)
+argv, cc, send, check, claims = [], [], False, False, None
 it = iter(sys.argv[1:])
 for a in it:
-    if a == "--cc":
+    if a == "--claims":
+        claims = next(it)
+    elif a == "--cc":
         cc.append(next(it))
     elif a == "--check":
         check = True
@@ -54,6 +59,9 @@ status = argv[3] if len(argv) > 3 else "closed"
 assert not (cc and reply_path == "-"), "--cc needs a reply to copy"
 assert not (send and reply_path == "-"), "--send needs a reply to send"
 assert status in ("active", "pending", "closed"), status
+assert claims in (None, "checked", "none"), f"--claims wants checked or none: {claims!r}"
+assert check or reply_path == "-" or claims, \
+    "posting a reply wants --claims checked (a background reader claim-checked it) or --claims none (no product claims)"
 note = open(note_path).read().strip()
 reply = None if reply_path == "-" else open(reply_path).read().strip()
 for name, html in (("note", note), ("reply", reply or "")):
