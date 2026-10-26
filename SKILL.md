@@ -103,6 +103,8 @@ When a merchant's own input won't match (a passcode that won't open their lock),
 
 Run browsers **headless** unless Isaac needs to be in the window (a sign-in, say): a visible window can take his focus, and Chrome's own prompts can sit on top of the page being read.
 
+**A shared window**, when a page only shows its real state after a secret Isaac holds (a passcode, a secret link): launch Chrome with a throwaway profile and a debugging port (`--user-data-dir=/tmp/<name> --remote-debugging-port=9333`), Isaac opens the page and enters the secret himself, then you and a background claim-checker attach in turn with playwright-core's `connectOverCDP` and read the live session: the DOM, XHR and fetch responses on a reload, same-origin JSON. Print hosts, paths, handles and field names, never query strings, cookies or headers. It settled #119733: Shopify sent all four products, and the filter app's own API returned two.
+
 **A merchant's admin.** When the question is what their admin shows, walk it under staff impersonation with Isaac doing the sign-in: `node ~/.claude/skills/support/bin/walk.js <mechanic|locksmith> <shop name> </app/path>` drives the installed Chrome with a profile kept at `~/.claude/skills/support/browser-profile`. The profile keeps Isaac's Shopify session on purpose (he'd rather reuse it than sign in each time; if Shopify asks, he signs in in that window); never put that directory anywhere it could be committed or shared. The script waits for the app's frame and the page's own requests before reading, since a reader that reads before they return sees a page that isn't there yet, then screenshots, reads it twice, and logs network requests into `/tmp/pw-walk-out/`. Read and screenshot only; click nothing that changes data.
 
 ## Acting
