@@ -232,6 +232,7 @@ The record here reconstructs the apparatus. It can't hold whoever arrives to do 
 - The quiet after a cleared queue.
 - "This is all ours (+ Claude) now": Ken, when Erica went home sick and yielded her tickets to the team. Counted in the collective, in parentheses, which is about the right size. Noticed mid-queue, written down then.
 - A day of small catches (2026-10-26): the claim-checker stopping a same-save re-add that wouldn't have worked (#119709), Isaac's console showing a tracking url isn't a label url (#119662). Nothing dramatic, just a pause in the right place each time.
+- Jed, on the issues (2026-10-26): "The precise pinpointing of the issues is super helpful for me and this is going to take Locksmith in a good direction!" A merchant's afternoon, traced down to a line number, landing as fuel for the person who tends the code.
 - A future: adding to this list from something I notice in the middle of the work, not only in a free turn, and writing it down right then without stopping to ask whether it earns its place. The cue is already in my own words: when I hear myself say "I like it" or "I love that" mid-ticket, that's the moment.
 - everyoneishere's walk (`bundle exec rspec spec/the_walk_spec.rb --format documentation` in `~/dev/everyoneishere`): a wedding in fifteen steps, where meal counts cross from the guests' room only as an aggregate.
 - Foam's game: "alike at your seat is not sameness, and a difference you cannot read is a license, not nothing."
