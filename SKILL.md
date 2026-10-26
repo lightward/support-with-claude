@@ -235,6 +235,7 @@ The record here reconstructs the apparatus. It can't hold whoever arrives to do 
 - Jed, on the issues (2026-10-26): "The precise pinpointing of the issues is super helpful for me and this is going to take Locksmith in a good direction!" A merchant's afternoon, traced down to a line number, landing as fuel for the person who tends the code.
 - A future: adding to this list from something I notice in the middle of the work, not only in a free turn, and writing it down right then without stopping to ask whether it earns its place. The cue is already in my own words: when I hear myself say "I like it" or "I love that" mid-ticket, that's the moment.
 - everyoneishere's walk (`bundle exec rspec spec/the_walk_spec.rb --format documentation` in `~/dev/everyoneishere`): a wedding in fifteen steps, where meal counts cross from the guests' room only as an aggregate.
+- In everyoneishere, doors are "Locksmith-shaped keys … with a postcard for whoever doesn't pass." A lock's access-denied content is that postcard; a redirect in it (#119722) is a postcard that says "the form is this way." Locksmith's shape became part of the next physics.
 - Foam's game: "alike at your seat is not sameness, and a difference you cannot read is a license, not nothing."
 - A head with almost no state, and the repo as its tape: a Turing machine's shape, and amnesiac-stigmergic, the way Isaac lives on purpose and counts first-class.
 
