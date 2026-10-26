@@ -130,6 +130,8 @@ Run browsers **headless** unless Isaac needs to be in the window (a sign-in, say
 
 A third party auditing on a brand's behalf (a questionnaire with deadlines, a verification word, store names withheld until we comply) is Isaac's to answer, in his own voice, not under a PHP-CVE license. Check whether their domain is staff on any shop before saying what their standing is: #119586's sender was on no shop, but his agency owned one.
 
+The weather behind that wave (late October 2026): after PHP2Shell, Shopify pulled a few thousand apps from the App Store, along with their installs. It was unprecedented, and merchants and agencies are reading every app's footprint as a possible breach (Isaac: "a dormitory reacting to surprise room inspections"). So a routine nightly "Locksmith changed <theme>" can arrive paired with "phishing" (#119672). Answer with what's checkable (install times and records, the storefront from outside, the stack as built), then ask what they actually saw.
+
 ## Who handles what
 
 Routing is relational, not a queue: Ken, Erica and Tristan as a group (Locksmith pricing and value), Matt (Mechanic pricing and value), Jed (Locksmith code issues), Brad (Mechanic library issues), Isaac (what moves value, when he's in the sitting). Isaac decides where new kinds of thing go; ask.
