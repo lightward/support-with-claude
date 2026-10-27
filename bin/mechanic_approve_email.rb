@@ -1,7 +1,7 @@
 # Approve a Mechanic shop for sending email. Runs in mechanic-api production through prod_read.sh --write, with Isaac's
 # go on every run (no standing go, on purpose: approval commits Lightward to sending someone else's mail, without limit,
 # so a Lightward human is part of each one):
-#   prod_read.sh mechanic ~/.claude/skills/support/bin/mechanic_approve_email.rb --write SHOP=<name>.myshopify.com
+#   prod_read.sh mechanic ~/dev/support-with-claude/bin/mechanic_approve_email.rb --write SHOP=<name>.myshopify.com
 # Prints the state before and after; writes nothing if the shop is already approved.
 domain = ENV.fetch("SHOP")
 shop = Shop.find_by!(shopify_domain: domain)

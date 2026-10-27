@@ -18,7 +18,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const log = (...a) => { const l = `[${new Date().toISOString().slice(11, 19)}] ${a.join(" ")}`; console.log(l); fs.appendFileSync(`${OUT}/walk.log`, l + "\n"); };
 
 (async () => {
-  const ctx = await chromium.launchPersistentContext(require("os").homedir() + "/.claude/skills/support/browser-profile", { channel: "chrome", headless: false, ignoreDefaultArgs: ["--no-sandbox"], viewport: { width: 1400, height: 1000 } });
+  const ctx = await chromium.launchPersistentContext(require("path").join(__dirname, "..", "browser-profile"), { channel: "chrome", headless: false, ignoreDefaultArgs: ["--no-sandbox"], viewport: { width: 1400, height: 1000 } });
   const page = ctx.pages()[0] || (await ctx.newPage());
   ctx.on("response", (r) => {
     const u = r.url();

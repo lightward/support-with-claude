@@ -1,7 +1,7 @@
 // usage: node bin/unsubscribe.js <unsubscribe link> [--confirm]
 // Opens an unsubscribe link in a throwaway headless browser, reports the page, and (with --confirm) clicks only a
 // button whose text is about unsubscribing. Nothing else on the page is touched.
-const { chromium } = require(require.resolve("playwright-core", { paths: [process.env.HOME + "/.claude/skills/support/bin"] }));
+const { chromium } = require(require.resolve("playwright-core", { paths: [__dirname] }));
 (async () => {
   const [url, mode] = process.argv.slice(2);
   const b = await chromium.launch({ channel: "chrome", headless: true });
