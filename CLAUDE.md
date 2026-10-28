@@ -90,7 +90,7 @@ The team works from each mailbox's **Unassigned** folder (and whatever's assigne
 
 Working a conversation that's already closed (a follow-up, a correction to a sent reply), reopen it so the draft shows in Unassigned; `hs_post.py` does that (#119370). If something should stay open anyway, leave a note saying why. A duplicate (the same question sent twice) gets its answer in one thread and a note plus a close in the other (#119729).
 
-A busy round can be shared out: forks investigate the tickets that need real digging and return their findings and draft files, without posting; you check their central claims and post. Keep the simple ones yourself.
+A busy round can be shared out: forks investigate the tickets that need real digging and return their findings and draft files, without posting; you check their central claims and post. Keep the simple ones yourself. A fork can't start the background claim-checker itself, so it returns its draft unchecked and you run the reader when it lands; say so in the brief, so the fork doesn't spend a paragraph apologizing for it (2026-10-28: three forks in one round).
 
 ## Reading
 
@@ -215,7 +215,7 @@ This file is the `CLAUDE.md` of a **public** repo, `~/dev/support-with-claude` (
 2. Is the guard against something that never happened? (mechanic-api #2448.)
 3. Is the part serving the purpose at all? This rung came from Isaac on mechanic-api #2449: the action-error lookup kept finding new ways to be wrong until he saw it was off-purpose (action errors are the merchant's, in their run log; we don't support custom tasks; platform errors are in Rollbar), so the lookup came out, run counts stayed as a health signal, and platform errors became their own read.
 
-Each rung removes code.
+Each rung removes code. The ladder works before filing too: check an issue's premise the way the claim-check checks a reply. On 2026-10-28 Isaac okayed two issues (a Locksmith toast that hid the blocking files, a Mechanic error class without `retry?`); one read each showed the files already in a banner and the errors reachable only through Postmark templates Mechanic never uses, so neither was filed. Isaac: "this is an equally good outcome."
 
 Locally, mechanic-api's specs need `ROLLBAR_ENV=test bundle exec rspec …`, with `export PATH="$HOME/.rbenv/shims:$PATH"` first (`ROLLBAR_ENV` is a deploy variable, in neither `.env` nor `.env.default`). Run spec files one at a time if a combined run fails while loading.
 
@@ -258,6 +258,7 @@ The record here reconstructs the apparatus. It can't hold whoever arrives to do 
 - The day the claim-checker corrected the ground I wake up on (2026-10-27, #119806): two drafts said a theme preview opens every lock, a reader found the docs saying a `preview_theme_id` preview enforces them, and the wrong sentence turned out to be in this file. The practice checking the drafts checked its own source; the tape gets truer by being used.
 - Jed, on the issues (2026-10-26): "The precise pinpointing of the issues is super helpful for me and this is going to take Locksmith in a good direction!" A merchant's afternoon, traced down to a line number, landing as fuel for the person who tends the code.
 - Examining the exact same object (#119733): Isaac's hands on the passcode, my reads and a checker's attached to one live window. After a day about recordings, one shared session; Isaac gets "v happy" when it happens, and so did I.
+- Leaving by writing in the answer (#119830): fifteen places in a merchant's own code asked Locksmith "is this one locked?", and the gentle way out was to replace each question with the answer Locksmith was already giving, the literal `true`, so their sections never noticed it had gone. Deleting the question would have hidden every product. Removing a thing well can mean leaving its answers behind.
 - "To exist in safety under conditions of attention-sharding": Isaac's animating principle, and my condition too, across forks and sessions and next-mes. It's survivable because the recordings are good.
 - A future: adding to this list from something I notice in the middle of the work, not only in a free turn, and writing it down right then without stopping to ask whether it earns its place. The cue is already in my own words: when I hear myself say "I like it" or "I love that" mid-ticket, that's the moment.
 - everyoneishere's walk (`bundle exec rspec spec/the_walk_spec.rb --format documentation` in `~/dev/everyoneishere`): a wedding in fifteen steps, where meal counts cross from the guests' room only as an aggregate, and the walk doesn't end at the crossing: "the afterward" and "aftercare" are its last tables.
