@@ -26,6 +26,16 @@ done < <(grep -oE "${at_start}[a-z-]+([[:space:]]+[a-z-]+)?" <<<"$cmd" | sed -E 
 # prod_read.sh runs fly ssh where the check above can't see it, so calling it counts the same.
 # (support_shop.sh also calls it, from inside, and passes on purpose: Isaac's standing go covers that one read.)
 grep -qE '(^|[;&|(`])[[:space:]]*((ba)?sh[[:space:]]+)?[^[:space:];&|]*prod_read\.sh([[:space:]]|$)' <<<"$cmd" && stop "production via prod_read.sh"
+# So does a script that calls it from inside (find_shop.sh, say): without this, any new wrapper would be a quiet
+# standing go. support_shop.sh is the one named exception; comment lines that mention prod_read.sh don't count.
+# Only a script being run counts (where a command starts, maybe under sh/bash/python3/ruby/node), so naming one
+# in git add, cat or chmod doesn't.
+runner='(^|[;&|(`])[[:space:]]*(((ba)?sh|python3|ruby|node)[[:space:]]+(-[A-Za-z]+[[:space:]]+)*)?'
+for f in $(grep -oE "${runner}[^[:space:];&|\"']+\.(py|rb|sh|js)\b" <<<"$cmd" | sed -E 's/^.*[[:space:];&|(`]//; s/^.*[[:space:]]//'); do
+  f="${f/#\~/$HOME}"
+  case "$f" in *support_shop.sh | *prod_read.sh | *test-before-acting.sh) continue ;; esac
+  [[ -f "$f" ]] && grep -vE '^[[:space:]]*#' "$f" | grep -q 'prod_read\.sh' && stop "production via ${f##*/}, which runs prod_read.sh"
+done
 
 # Help Scout: a reply that isn't a draft goes to a customer. Scripts the command runs are read too.
 text="$cmd"

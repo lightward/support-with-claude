@@ -21,6 +21,11 @@ t pass "prod_read.sh with go" $'# go: yes, read\n~/dev/support-with-claude/bin/p
 t pass "prod_read.sh named in prose" 'grep -n prod_read SKILL.md'
 t pass "chmod of prod_read.sh" 'chmod +x bin/prod_read.sh && ls'
 t pass "support_shop.sh: standing go" '~/dev/support-with-claude/bin/support_shop.sh 9yytey-2f info@example.com'
+t deny "a wrapper that runs prod_read.sh (find_shop.sh) without go" "$(dirname "$0")/../bin/find_shop.sh rankandrally.com"
+t pass "find_shop.sh with go" $'# go: look them up\n'"$(dirname "$0")/../bin/find_shop.sh rankandrally.com"
+t deny "find_shop.sh under bash, after cd" "cd /tmp && bash $(dirname "$0")/../bin/find_shop.sh rankandrally.com"
+t pass "git add of find_shop.sh" "git add $(dirname "$0")/../bin/find_shop.sh CLAUDE.md && git commit -q -m x"
+t pass "a .rb that only mentions prod_read.sh in comments" 'ruby -c ~/dev/support-with-claude/bin/mechanic_dev_trial.rb'
 t deny "hs_close.py without go" 'python3 -I ~/dev/support-with-claude/bin/hs_close.py 3490759643'
 t pass "hs_close.py with go" $'# go: yup close\npython3 -I ~/dev/support-with-claude/bin/hs_close.py 3490759643'
 t deny "inline status PATCH without go" $'python3 -c \'urllib.request.Request("https://api.helpscout.net/v2/conversations/1", method="PATCH", data=json.dumps({"op":"replace","path":"/status","value":"closed"}))\''
