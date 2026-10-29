@@ -23,7 +23,8 @@ show = ->(label) {
 show.("before")
 if until_date
   ends_at = (until_date + 1).in_time_zone("UTC") + 12.hours
-  raise "UNTIL must be within 62 days" if ends_at > 62.days.from_now
+  # A guard against a typo'd year, not a policy: gifts get sized to the need, past a month when Isaac says so (#119915).
+  raise "UNTIL must be within 120 days" if ends_at > 120.days.from_now
   seconds = (ends_at - Time.now.utc).round
 end
 if shop.subscriber?
