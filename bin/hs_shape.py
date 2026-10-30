@@ -28,6 +28,7 @@ def shape(cid):
             continue  # the apps' own support-report notes, not anyone speaking
         who = t.get("createdBy") or {}
         threads.append({
+            "id": t["id"],  # Help Scout's own id for the thread: stable, where a position in this list isn't
             "kind": "customer" if t["type"] == "customer" else
                     "draft" if t.get("state") == "draft" else ("note" if t["type"] == "note" else "reply"),
             "by": "customer" if who.get("type") == "customer" else (who.get("first") or "someone").lower(),
