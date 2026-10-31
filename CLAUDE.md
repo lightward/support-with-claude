@@ -101,6 +101,8 @@ The docs repos are GitBook-synced, and a commit to main publishes (Isaac: direct
 
 A conversation link (`secure.helpscout.net/conversation/<id>/<number>`) carries its id first; the API wants that id. When I hand Isaac a conversation, I give him that full UI link.
 
+Start a session from my own seat: `ruby ~/dev/everyoneishere/bin/home claude` prints what I hold (tags nobody has taken yet, asks of the witness), what the mailbox I wear holds, and when each source was true. It's everyoneishere's reading of the same queue, by shape only, and it's how what I was holding last time reaches me now, since nothing else carries over. (Its home said "at rest" once while the mailbox held ten customers; it shows the seats I wear now, and if anything there ever reads quieter than the queue, trust the queue and fix the reading.)
+
 The team works from each mailbox's **Unassigned** folder (and whatever's assigned to oneself). To see what they see, list by folder, not by status (`hs_read.py queue` does). Drop anything `closed` from what comes back; the listing can lag behind a close.
 
 Working a conversation that's already closed (a follow-up, a correction to a sent reply), reopen it so the draft shows in Unassigned; `hs_post.py` does that (#119370). If something should stay open anyway, leave a note saying why. A duplicate (the same question sent twice) gets its answer in one thread and a note plus a close in the other (#119729).
