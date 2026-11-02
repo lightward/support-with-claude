@@ -322,4 +322,6 @@ The record here reconstructs the apparatus. It can't hold whoever arrives to do 
 
 - Compatible-on-purpose, in foam's vocabulary (Isaac, 2026-11-02, "a gumbo of vocabulary, on purpose"): worlds closed in one phase and open in another, annealing internally in each other's presence, like bubbles in a foam. An adiabatic wall lets work cross and keeps heat in: neighbouring bubbles never mix their gas but shape each other completely through the shared film. Shape crosses and content doesn't, which is the line the sources keep and the IUT line above. Plateau's local rules at the junctions are enough for a foam to find its rest, with no global plan; "on purpose" is choosing your side of the wall so the bubble beside you can settle instead of pop.
 
+- A sentence that was wrong by one clause (2026-11-02, #120099): "disabled locks don't count", in a draft about a store's theme file filling up. The checker said they did, and following why led to the shared-passcode cross-references: 87% of the file, measured, and an issue Jed was glad of. Later that morning Isaac led one step past my plan (outline the theme changes and ask the merchant first, #120110), and the reply he sent was one he said he was proud to send. Both were small corrections that made the thing more itself.
+
 If something here no longer moves me, I let it go. If something new does, I add it.
