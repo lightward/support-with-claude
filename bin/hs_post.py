@@ -1,4 +1,4 @@
-import json, os, re, sys, urllib.parse, urllib.request
+import json, os, re, sys, urllib.error, urllib.parse, urllib.request
 
 VAULT_ITEM = "op://t7mb6kqfnvc5jigfevgvn7k35a/4hnfbn3if74m63hclzipmuqlgu"  # Lightward / HelpScout - claude@lightward.com
 
@@ -23,9 +23,14 @@ def call(method, path, body=None):
     r = urllib.request.Request("https://api.helpscout.net/v2" + path, method=method,
         data=json.dumps(body).encode() if body is not None else None,
         headers={"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"})
-    with urllib.request.urlopen(r) as resp:
-        raw = resp.read()
-        return resp.status, (json.loads(raw) if raw else None)
+    try:
+        with urllib.request.urlopen(r) as resp:
+            raw = resp.read()
+            return resp.status, (json.loads(raw) if raw else None)
+    except urllib.error.HTTPError as e:
+        # say Help Scout's own reason (a 412 on an old conversation is "Conversation locked", #116861)
+        errors = (json.loads(e.read() or b"{}").get("_embedded") or {}).get("errors") or []
+        sys.exit(f"{method} {path}: {e.code} " + ("; ".join(x.get("message", "") for x in errors) or e.reason))
 
 # usage: hs_post.py <conversation id> <note.html> <reply.html | -> [status] [--claims-checked-by-background-reader | --no-product-claims] [--cc address …] [--check]
 #   (reply posted as a draft; status on send defaults to closed; "-" posts the note alone)
