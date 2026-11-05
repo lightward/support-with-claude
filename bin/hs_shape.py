@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The shape of Help Scout conversations, as JSON lines: who spoke, as what, and whom a note mentions, in order.
+"""The shape of Help Scout conversations, as JSON lines: who spoke, as what, when, and whom a note mentions, in order.
 
   hs_shape.py queue           every non-closed conversation in each mailbox's Unassigned folder
   hs_shape.py <id> [<id> …]   these conversations
@@ -33,6 +33,7 @@ def shape(cid):
                     "draft" if t.get("state") == "draft" else ("note" if t["type"] == "note" else "reply"),
             "by": "customer" if who.get("type") == "customer" else (who.get("first") or "someone").lower(),
             "mentions": re.findall(r'mention-highlight">@([\w.-]+)<', body) if t["type"] == "note" else [],
+            "at": t.get("createdAt"),  # when, by Help Scout's clock: a time is shape, and lets other sources' answers be ordered against it
         })
     return {"id": c["id"], "number": c["number"], "mailbox": hs_read.MAILBOXES.get(c["mailboxId"], c["mailboxId"]),
             "status": c["status"], "threads": threads}
