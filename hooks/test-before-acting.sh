@@ -34,4 +34,9 @@ t pass "hs_post.py note and draft" 'python3 -I ~/dev/support-with-claude/bin/hs_
 t pass "running these tests" 'bash hooks/test-before-acting.sh | grep -c "^ok"'
 t deny "hs_post.py --send without go" 'python3 -I ~/dev/support-with-claude/bin/hs_post.py 1 /tmp/n.html /tmp/r.html --send'
 t pass "hs_post.py --send with go" $'# go: php replies, send them\npython3 -I ~/dev/support-with-claude/bin/hs_post.py 1 /tmp/n.html /tmp/r.html --send'
+t pass "reading hs_close.py with sed" 'sed -n 1,60p bin/hs_close.py'
+t pass "grep over the hook itself" 'grep -n hs_close hooks/before-acting.sh'
+t deny "hs_close.py run directly" 'bin/hs_close.py 3490759643 --spam'
+t pass "fly named in a quoted heredoc body" $'cat > /tmp/n.html <<\'EOF\'\nreleased at 15:30 UTC; flyctl shows v373\nEOF'
+t deny "fly after a quoted heredoc ends" $'cat > /tmp/n.html <<\'EOF\'\nnote\nEOF\nflyctl ssh console -a x'
 exit $fail

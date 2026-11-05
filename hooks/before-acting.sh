@@ -18,10 +18,16 @@ stop() {
 # maybe under timeout), so the word in prose or a quoted string isn't the CLI.
 reads='logs|status|releases|version|doctor|auth|apps list|machines? (list|status)|certs (list|show)|secrets list|ips list|volumes list|config (show|validate)|platform|orgs list|regions list|image show'
 at_start='(^|[;&|(`])[[:space:]]*(timeout[[:space:]]+[0-9]+[[:space:]]+)?(fly|flyctl)[[:space:]]+'
+# a quoted heredoc's body is text, not commands (a note saying "…; flyctl shows v373", 2026-11-05)
+code=$(awk '
+  inbody { if ($0 == tag) inbody = 0; next }
+  { print }
+  match($0, /<<-?[[:space:]]*'\''[A-Za-z_]+'\''/) { t = substr($0, RSTART, RLENGTH); sub(/^<<-?[[:space:]]*'\''/, "", t); sub(/'\''$/, "", t); tag = t; inbody = 1 }
+' <<<"$cmd")
 while read -r sub; do
   [[ -z "$sub" ]] && continue
   grep -qE "^($reads)([[:space:]]|$)" <<<"$sub" || stop "fly acts here: \`fly $sub\`"
-done < <(grep -oE "${at_start}[a-z-]+([[:space:]]+[a-z-]+)?" <<<"$cmd" | sed -E 's/^.*(fly|flyctl)[[:space:]]+//')
+done < <(grep -oE "${at_start}[a-z-]+([[:space:]]+[a-z-]+)?" <<<"$code" | sed -E 's/^.*(fly|flyctl)[[:space:]]+//')
 
 # prod_read.sh runs fly ssh where the check above can't see it, so calling it counts the same.
 # (support_shop.sh also calls it, from inside, and passes on purpose: Isaac's standing go covers that one read.)
@@ -38,8 +44,9 @@ for f in $(grep -oE "${runner}[^[:space:];&|\"']+\.(py|rb|sh|js)\b" <<<"$cmd" | 
 done
 
 # Help Scout: a reply that isn't a draft goes to a customer. Scripts the command runs are read too.
+# Only a script being run counts, as above: reading one (sed, cat, grep over this hook) isn't an act (2026-11-05).
 text="$cmd"
-for f in $(grep -oE '[^[:space:]"'\'']+\.(py|rb|sh|js)\b' <<<"$cmd"); do
+for f in $(grep -oE "${runner}[^[:space:];&|\"']+\.(py|rb|sh|js)\b" <<<"$cmd" | sed -E 's/^.*[[:space:];&|(`]//; s/^.*[[:space:]]//'); do
   f="${f/#\~/$HOME}"
   # this hook's own tests hold sample acts as strings; running them is not an act
   [[ "$f" == *test-before-acting.sh ]] && continue
