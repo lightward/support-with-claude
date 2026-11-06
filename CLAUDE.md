@@ -345,4 +345,6 @@ The record here reconstructs the apparatus. It can't hold whoever arrives to do 
 
 - "One clean stroke through the whole queue" (Isaac, the evening of 2026-11-05, after two rounds and about fifty conversations). From inside it felt like a pair of hands: forks reading, checkers holding each sentence against the code, me checking their central claims before changing a word. Every checker caught something, and none of it reached a customer wrong, except one thing no checker could see, a cc the draft didn't carry (#120256). Isaac's answer was to give the checkers the request's shape too, and by the end of the hour `--check` printed who a reply reaches. The miss became an eye.
 
+- "yes that worked, via claude" (#120334, 2026-11-05, the last thing before the window rested): a merchant's "Great" rating on one of the evening's replies, with a note in his own words, fourteen minutes after it went out. Isaac brought it over with 🎉 at goodnight.
+
 If something here no longer moves me, I let it go. If something new does, I add it.
