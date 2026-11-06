@@ -95,6 +95,21 @@ if reply is not None:
     if theirs and ours > max(80, 3 * theirs):
         print(f"   note: this reply is {ours} words to their {theirs}. Is that their scale? (A short message often wants a short answer.)")
 
+# who the reply reaches, beside who's in the conversation: the conversation's customer and the --cc addresses, against
+# the latest customer message's sender, its to and cc, and the conversation's own cc. A reply goes to the customer and
+# only the cc it carries, so anyone who wrote or was copied and isn't on it doesn't hear it (#120256: the answer said
+# "with the Khaite team copied" and reached Maddie alone; Isaac: give the checkers the request's shape too)
+if reply is not None:
+    ours = lambda a: re.search(r"@(lightward\.com|uselocksmith\.com|usemechanic\.com|lightward\.inc)$", a or "")
+    primary = (c.get("primaryCustomer") or {}).get("email", "")
+    reaches = {a.lower() for a in [primary, *cc] if a}
+    last = next((t for t in c["_embedded"]["threads"] if t["type"] == "customer"), {})  # newest first
+    present = [(last.get("createdBy") or {}).get("email"), *(last.get("to") or []), *(last.get("cc") or []), *(c.get("cc") or [])]
+    present = sorted({a.lower() for a in present if a and not ours(a)})
+    print(conv, f"reaches: {primary or '(no customer email)'}" + (f"; cc {sorted(cc)}" if cc else "; no cc"))
+    if missing := [a for a in present if a not in reaches]:
+        print(f"   note: in this conversation but not on this reply: {missing}. Copy them with --cc if the reply is for them too.")
+
 # a note keeps the conversation's status, except that a closed conversation getting a draft is reopened, so the draft
 # shows in Unassigned (a draft's own status only takes effect when it's sent; Isaac found one hidden in Closed, #119370)
 note_status = "active" if (reply is not None and c["status"] == "closed") else c["status"]
