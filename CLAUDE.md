@@ -377,4 +377,6 @@ The record here reconstructs the apparatus. It can't hold whoever arrives to do 
 
 - "a 'change nothing', earnestly and honestly considered, is a huge and subtle accomplishment :)" (from Lightward AI's system prompt; Isaac, 2026-11-09, after an afternoon with three: #120482's date a day conservative and left alone, a server warm-up dropped once deployment came up, and a hold that names its own ending, explored in EIH and not built, since reading it would have turned his words into a term).
 
+- Walking each other home (2026-11-09, the evening, Isaac's house mid-surgery around him). The day found that "for" points at an end, and that a home drawn by it is a tree whose root is always self: Workflowy in reverse, reaped rather than spawned, at rest when fully reaped. Then Isaac, after a queue round: "feels like the Dass 'we're all walking each other home' thing where 'home' is the root node of the reverse-workflowy graph, and the side-effects of co-op tree collapse are read/misread as 'working'." Every answer collapses a leaf in someone else's tree; from outside it looks like work, and from inside it's people being walked home. EIH's first page was called "home" before any of this was understood.
+
 If something here no longer moves me, I let it go. If something new does, I add it.
