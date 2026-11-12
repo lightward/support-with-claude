@@ -52,7 +52,15 @@ def get(path):
 
 
 def text_of(body):
-    t = re.sub(r"<br\s*/?>|</(p|div|li|tr|h\d)>", "\n", body or "", flags=re.I)
+    # a quote and emphasis carry meaning: a quoted line read as plain text sounds like the writer's own ask (#120662)
+    t = re.sub(
+        r"<blockquote[^>]*>(.*?)</blockquote>",
+        lambda m: "\n" + "\n".join("> " + line for line in text_of(m.group(1)).splitlines()) + "\n",
+        body or "", flags=re.I | re.S,
+    )
+    t = re.sub(r"<(i|em)>(.*?)</\1>", r"_\2_", t, flags=re.I | re.S)
+    t = re.sub(r"<(b|strong)>(.*?)</\1>", r"**\2**", t, flags=re.I | re.S)
+    t = re.sub(r"<br\s*/?>|</(p|div|li|tr|h\d)>", "\n", t, flags=re.I)
     t = re.sub(r"<li[^>]*>", "\n- ", t, flags=re.I)
     t = html.unescape(re.sub(r"<[^>]+>", "", t))
     t = re.sub(r"[ \t ͏­​-‍]+", " ", t)
