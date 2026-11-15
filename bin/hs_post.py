@@ -95,6 +95,19 @@ if reply is not None:
     if theirs and ours > max(80, 3 * theirs):
         print(f"   note: this reply is {ours} words to their {theirs}. Is that their scale? (A short message often wants a short answer.)")
 
+# the reply's skeleton: each block as its size and first few words, the way a hurried reader takes it in, the words
+# mostly out of view (Isaac, #120802: "if I squint, it looks like a thumbs-up email"; read it with the nouns taken out).
+# Shape only: whether the news stands where an eye lands (top and bottom, not riding inside a hello) is the reader's call
+if reply is not None:
+    text = re.sub(r"<li>", "\n\n• ", reply)
+    text = re.sub(r"<br\s*/?>\s*<br\s*/?>|</?(ol|ul)>", "\n\n", text)
+    text = re.sub(r"<[^>]+>", " ", text)
+    blocks = [re.sub(r"\s+", " ", b).strip() for b in re.split(r"\n\s*\n", text)]
+    print(conv, "skeleton:")
+    for b in (b for b in blocks if b):
+        ws = b.split()
+        print(f"   [{len(ws):>3}] {' '.join(ws[:6])}{' …' if len(ws) > 6 else ''}")
+
 # who the reply reaches, beside who's in the conversation: the conversation's customer and the --cc addresses, against
 # the latest customer message's sender, its to and cc, and the conversation's own cc. A reply goes to the customer and
 # only the cc it carries, so anyone who wrote or was copied and isn't on it doesn't hear it (#120256: the answer said
