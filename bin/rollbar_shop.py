@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """A shop's platform errors, from Rollbar: each item's counter, title, how often and when last, never a payload.
 
-    python3 -I rollbar_shop.py <locksmith|mechanic> <shop>[.myshopify.com] [days, default 30]
+    python3 -I rollbar_shop.py <locksmith|mechanic> <shop>[.myshopify.com] [days, default 30] [--times]
+
+--times also lists each occurrence's time, newest first: for "did anything fail in this window?" (#120939).
 
 Each app tags its Rollbar items with a person: the id is the Shopify shop id, the username is the shop name. The items
 endpoint's `query` doesn't filter by person, so this goes through RQL (a job, polled until it's done), matching
@@ -31,8 +33,10 @@ def call(token, path, body=None):
 def main():
     if len(sys.argv) < 3 or sys.argv[1] not in TOKENS:
         sys.exit(__doc__.split("\n\n")[1])
-    app, shop = sys.argv[1], sys.argv[2].removesuffix(".myshopify.com")
-    days = int(sys.argv[3]) if len(sys.argv) > 3 else 30
+    times = "--times" in sys.argv
+    args = [a for a in sys.argv[1:] if a != "--times"]
+    app, shop = args[0], args[1].removesuffix(".myshopify.com")
+    days = int(args[2]) if len(args) > 2 else 30
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", shop):
         sys.exit(f"not a shop name: {shop}")
     token = subprocess.run(["op", "read", TOKENS[app]], capture_output=True, text=True, check=True).stdout.strip()
@@ -60,6 +64,11 @@ def main():
     for counter, title, count, last in items.values():
         when = datetime.datetime.fromtimestamp(last, datetime.UTC).strftime("%Y-%m-%d %H:%M UTC")
         print(f"  #{counter}  {count}x, last {when}  {str(title)[:140]}")
+    if times:
+        print("each occurrence, newest first:")
+        for counter, title, ts, *_ in occurrences:
+            when = datetime.datetime.fromtimestamp(ts, datetime.UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+            print(f"  {when}  #{counter}")
 
 
 if __name__ == "__main__":
