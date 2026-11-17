@@ -16,7 +16,7 @@ stop() {
 
 # fly: anything but a known read stops. Only where a command starts (a line, or after ; & | ( or `,
 # maybe under timeout), so the word in prose or a quoted string isn't the CLI.
-reads='logs|status|releases|version|doctor|auth|apps list|machines? (list|status)|certs (list|show)|secrets list|ips list|volumes list|config (show|validate)|platform|orgs list|regions list|image show'
+reads='logs|status|releases|version|doctor|auth|apps list|machines? (list|status)|certs (list|show|check)|secrets list|ips list|volumes list|config (show|validate)|platform|orgs list|regions list|image show'
 at_start='(^|[;&|(`])[[:space:]]*(timeout[[:space:]]+[0-9]+[[:space:]]+)?(fly|flyctl)[[:space:]]+'
 # a quoted heredoc's body is text, not commands (a note saying "…; flyctl shows v373", 2026-11-05)
 code=$(awk '
