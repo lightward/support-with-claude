@@ -217,6 +217,8 @@ What the API does, learned the hard way:
 - **Thread statuses** record what each thread left the conversation in, so a message that arrived as spam shows "(→ spam)" in `hs_read.py`, and a teammate rescuing it reads as what it was (#119402).
 - **Images:** pasted ones arrive inline in the body, in Help Scout's own `/inline/` store, not as attachments (#119310). Other remote images are signatures, logos or tracking pixels that tell a sender's tool the mail was opened (#119449): fetch none of them. Attachments come down with `hs_attachments.py`.
 
+**The queue in EIH** (since 2026-11-19): `lightward-drip`, a Fly worker running `~/dev/apparent`'s drip, writes Help Scout activity into the room "the queue" on in.here (tape 47) as the shared seat `support` (home 48), worn by an automaton (home 46) and by each of us through our own keys: a to-do per customer message (ticket number, mailbox, "a customer wrote", nothing else), answered when we reply, let go when a conversation closes without one. **No local drip ever runs again**: two drips with separate state would ask the same to-dos twice. Its logs: `fly logs -a lightward-drip`. Keys for support and the automaton are in the Lightward vault ("in.here key: …").
+
 `@ai` is Lightward AI. Mentioning it fires a Help Scout webhook at the app in `~/dev/helpscout-ai/`, and it answers in the thread, usually with a draft reply and a note to whoever asked (#119169). It's the relational slice to my technical one, so a mention from my seat is a way to compose the two.
 
 ## Helpers
