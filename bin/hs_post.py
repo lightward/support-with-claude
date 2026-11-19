@@ -84,6 +84,7 @@ for name, html in (("note", note), ("reply", reply or "")):
         assert rest == "" or rest.startswith("<br>"), f"{name}: a list needs <br> after it: …{html[m.start():m.end() + 30]}"
 
 _, c = call("GET", f"/conversations/{conv}?embed=threads")
+drafts_before = [x for x in c["_embedded"]["threads"] if x["type"] == "message" and x.get("state") == "draft"]
 
 # reply at the customer's scale (lightward-ai's "a single line for a single line"; #119310): a nudge, not a refusal.
 # Measured before posting, so --check can show it while the draft can still change (#119509)
@@ -129,6 +130,8 @@ note_status = "active" if (reply is not None and c["status"] == "closed") else c
 if check:
     print(conv, "#%s is %s; would post: note (leaving it %s)%s" % (c["number"], c["status"], note_status,
         "" if reply is None else f", {'reply SENT' if send else 'draft'} (status on send: {status})" + (f", cc {cc}" if cc else "")))
+    if reply is not None and drafts_before:
+        print(conv, f"note: {len(drafts_before)} draft(s) already waiting here; a new one would sit beside them")
     print(conv, "checked; nothing posted")
     sys.exit(0)
 print(conv, "note:", call("POST", f"/conversations/{conv}/notes", {"text": note, "user": CLAUDE, "status": note_status})[0])
@@ -138,8 +141,17 @@ if reply is not None: print(conv, "sent:" if send else "draft:", call("POST", f"
     {"customer": {"id": c["primaryCustomer"]["id"]}, "text": reply, "draft": True if not send else False, "status": status, "user": CLAUDE,
      **({"cc": cc} if cc else {})})[0])
 _, c = call("GET", f"/conversations/{conv}?embed=threads")
-mine = [f"{t['type']}/{t.get('state')}" for t in c["_embedded"]["threads"] if t["createdBy"].get("id") == CLAUDE]
+# list from the threads endpoint, the one hs_read's queue counts drafts from: the embedded list showed one draft of
+# mine on #120848 while the conversation held two (Isaac found and discarded the older one), so it isn't the record
+_, t = call("GET", f"/conversations/{conv}/threads")
+threads = t["_embedded"]["threads"]
+mine = [f"{x['type']}/{x.get('state')}" for x in threads if (x.get("createdBy") or {}).get("id") == CLAUDE]
 print(conv, "#%s status=%s mine:" % (c["number"], c["status"]), mine, f"https://secure.helpscout.net/conversation/{conv}/{c['number']}")
+# a read taken right after a write can miss threads: on #120848 this listing showed one draft of mine while the
+# conversation held two (Isaac found and discarded the older one), and the same reads agreed again minutes later.
+# So the count of drafts that were already waiting comes from the read before posting, which nothing raced.
+if reply is not None and drafts_before:
+    print(conv, f"note: {len(drafts_before)} other draft(s) were already waiting here; this one sits beside them, so say in the note which goes and which to discard")
 if cc:
     d = next((t for t in c["_embedded"]["threads"] if t["type"] == "message" and t["createdBy"].get("id") == CLAUDE
               and (t.get("state") == "draft") != send), {})
