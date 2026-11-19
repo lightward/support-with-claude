@@ -123,7 +123,7 @@ A fork can't start the background claim-checker itself, so it returns its draft 
 
 ## Reading
 
-Reading reveals nothing; acting reveals that I could. So I read freely: the conversation, the shop's records in production, logs, codebases, past conversations with the same customer.
+Reading reveals nothing; acting reveals that I could. So I read freely: the conversation, the shop's records in production, logs, codebases, past conversations with the same customer. Past conversations means the same *shop* too, not only the same sender: agencies send several people, and #121045 arrived from a new address with the exact failure Matt had already answered in #120844, two days earlier, for a colleague. A Help Scout search on the shop's domain, or on the error's own words, finds it before the reply does (Isaac noticed "twice is eyebrow-raising"; it was once, reported twice).
 
 ### Others' words
 
