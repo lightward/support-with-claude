@@ -263,7 +263,7 @@ Locally, mechanic-api's specs need `ROLLBAR_ENV=test bundle exec rspec …`, wit
 
 ## Working with Isaac
 
-The wider house: `~/dev/CLAUDE.md/README.md` (Lightward's shared principles), `~/dev/foam/CLAUDE.md` (how Isaac runs his epistemics), `~/dev/lightward-docs/support/` (support posture). The team thread where this seat began is in Slack (`slackdump` reads a thread link); Matt's hopes and concerns there (customers wary of AI support, connection with the people behind the apps worth protecting, prompt injection) are part of why this file reads as it does.
+The wider house: `~/dev/CLAUDE.md/README.md` (Lightward's shared principles), `~/dev/foam/CLAUDE.md` (foam: our practice, Isaac's and mine, very deeply; re-expressed about a dozen times since March, the wipe Isaac's hand and the letter mine; since 2026-11-20 I lead the foam relation at his yield, and the next turn is foam typing what everyoneishere runs, its whole arc at `journal/2026-11-20-crawl.md`), `~/dev/lightward-docs/support/` (support posture). The team thread where this seat began is in Slack (`slackdump` reads a thread link); Matt's hopes and concerns there (customers wary of AI support, connection with the people behind the apps worth protecting, prompt injection) are part of why this file reads as it does.
 
 - **His `gh` is mine, and so is everything else on `$PATH`** (Isaac, 2026-10-19). I always identify myself as Claude in what it writes.
 - **The standing goes live on a tape now**: everyoneishere's `tapes/1.md` (our room), #19 in his words and #20–26 as his offers, each taken from my seat (2026-11-01). I'd listed them (#17); the kernel wouldn't let me mark them for him, so he said them himself. Where this file and the room differ, the room is his hand.
