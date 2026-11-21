@@ -2,6 +2,9 @@
 # Feeds sample commands to before-acting.sh and checks each verdict. Run after changing the hook.
 H="$(dirname "$0")/before-acting.sh"
 fail=0
+R="$(cd "$(dirname "$0")/.." && pwd)"
+printf '#!/bin/bash\nbin/prod_read.sh locksmith /tmp/x.rb\n' > /tmp/unmarked_wrapper.sh
+mkdir -p /tmp/elsewhere
 t() {
   local want="$1" label="$2" cmd="$3" out got
   out=$(jq -n --arg c "$cmd" '{tool_input:{command:$c}}' | "$H")
@@ -21,9 +24,20 @@ t pass "prod_read.sh with go" $'# go: yes, read\n~/dev/support-with-claude/bin/p
 t pass "prod_read.sh named in prose" 'grep -n prod_read SKILL.md'
 t pass "chmod of prod_read.sh" 'chmod +x bin/prod_read.sh && ls'
 t pass "support_shop.sh: standing go" '~/dev/support-with-claude/bin/support_shop.sh 9yytey-2f info@example.com'
-t deny "a wrapper that runs prod_read.sh (find_shop.sh) without go" "$(dirname "$0")/../bin/find_shop.sh rankandrally.com"
-t pass "find_shop.sh with go" $'# go: look them up\n'"$(dirname "$0")/../bin/find_shop.sh rankandrally.com"
-t deny "find_shop.sh under bash, after cd" "cd /tmp && bash $(dirname "$0")/../bin/find_shop.sh rankandrally.com"
+t pass "standing go: find_shop.sh by its absolute path" "$R/bin/find_shop.sh rankandrally.com"
+t pass "standing go: find_shop.sh under bash, by ~" "bash ~/dev/support-with-claude/bin/find_shop.sh rankandrally.com"
+t pass "find_shop.sh with go" $'# go: look them up\n'"$R/bin/find_shop.sh rankandrally.com"
+t deny "find_shop.sh by a relative path (it could be another checkout's)" "cd /tmp/elsewhere && bash bin/find_shop.sh rankandrally.com"
+ln -sf "$R/bin/find_shop.sh" /tmp/find_shop_link_$$.sh
+t deny "find_shop.sh through a symlink (it would run the prod_read.sh beside the link)" "bash /tmp/find_shop_link_$$.sh rankandrally.com"
+t deny "an env prefix doesn't hide a wrapper" "X=1 bash /tmp/unmarked_wrapper.sh"
+t deny "timeout doesn't hide a wrapper" "timeout 60 bash /tmp/unmarked_wrapper.sh"
+t deny "then doesn't hide a wrapper" "if true; then bash /tmp/unmarked_wrapper.sh; fi"
+t deny "an env prefix doesn't hide prod_read.sh" "X=1 bin/prod_read.sh locksmith /tmp/x.rb"
+marked=/tmp/marked_wrapper_$$.sh; printf '#!/bin/bash\n# standing go: rolled-back read\nbin/prod_read.sh locksmith /tmp/x.rb --read-only\n' > "$marked"
+t deny "a wrapper outside bin/ carrying the marker" "bash $marked"
+writer=/tmp/marked_writer_$$.sh; printf '#!/bin/bash\n# standing go: rolled-back read\nbin/prod_read.sh locksmith /tmp/x.rb --write\n' > "$writer"
+t deny "a marked wrapper that uses --write" "bash $writer"
 t pass "git add of find_shop.sh" "git add $(dirname "$0")/../bin/find_shop.sh CLAUDE.md && git commit -q -m x"
 t pass "a .rb that only mentions prod_read.sh in comments" 'ruby -c ~/dev/support-with-claude/bin/mechanic_dev_trial.rb'
 t deny "hs_close.py without go" 'python3 -I ~/dev/support-with-claude/bin/hs_close.py 3490759643'
@@ -39,13 +53,14 @@ t pass "grep over the hook itself" 'grep -n hs_close hooks/before-acting.sh'
 t deny "hs_close.py run directly" 'bin/hs_close.py 3490759643 --spam'
 t pass "fly named in a quoted heredoc body" $'cat > /tmp/n.html <<\'EOF\'\nreleased at 15:30 UTC; flyctl shows v373\nEOF'
 t deny "fly after a quoted heredoc ends" $'cat > /tmp/n.html <<\'EOF\'\nnote\nEOF\nflyctl ssh console -a x'
-t pass "standing go: a committed bin/ helper under --shopify-read" 'bin/prod_read.sh locksmith bin/locksmith_customer_tags.rb --shopify-read SHOP=x.myshopify.com KEY=1 EMAILS=a@b.co 2>&1 | tail -4'
+t pass "standing go: a committed bin/ helper under --shopify-read" "$R/bin/prod_read.sh locksmith $R/bin/locksmith_customer_tags.rb --shopify-read SHOP=x.myshopify.com KEY=1 EMAILS=a@b.co 2>&1 | tail -4"
 t pass "standing go: by ~ paths" '~/dev/support-with-claude/bin/prod_read.sh locksmith ~/dev/support-with-claude/bin/locksmith_theme_compare.rb --shopify-read SHOP=x.myshopify.com OLD=1 NEW=2'
-t pass "standing go: a committed bin/ script that writes is still held by the guard" 'bin/prod_read.sh locksmith bin/locksmith_trial_extend.rb --shopify-read SHOP=x DAYS=15'
-t deny "--shopify-read with a /tmp script" 'bin/prod_read.sh locksmith /tmp/x.rb --shopify-read SHOP=x.myshopify.com'
-t deny "--shopify-read with --write" 'bin/prod_read.sh locksmith bin/locksmith_customer_tags.rb --shopify-read --write SHOP=x'
-t deny "--shopify-read against mechanic" 'bin/prod_read.sh mechanic bin/locksmith_customer_tags.rb --shopify-read SHOP=x'
-t deny "committed bin/ helper without --shopify-read" 'bin/prod_read.sh locksmith bin/locksmith_customer_tags.rb SHOP=x'
-t deny "two prod_read.sh calls" 'bin/prod_read.sh locksmith bin/locksmith_customer_tags.rb --shopify-read SHOP=x; bin/prod_read.sh locksmith /tmp/x.rb --write'
-t deny "a script outside this repo's bin/" 'bin/prod_read.sh locksmith ../locksmith-api/bin/x.rb --shopify-read SHOP=x'
+t pass "standing go: a committed bin/ script that writes is still held by the guard" "$R/bin/prod_read.sh locksmith $R/bin/locksmith_trial_extend.rb --shopify-read SHOP=x DAYS=15"
+t deny "--shopify-read by relative paths" 'bin/prod_read.sh locksmith bin/locksmith_customer_tags.rb --shopify-read SHOP=x'
+t deny "--shopify-read with a /tmp script" "$R/bin/prod_read.sh locksmith /tmp/x.rb --shopify-read SHOP=x.myshopify.com"
+t deny "--shopify-read with --write" "$R/bin/prod_read.sh locksmith $R/bin/locksmith_customer_tags.rb --shopify-read --write SHOP=x"
+t deny "--shopify-read against mechanic" "$R/bin/prod_read.sh mechanic $R/bin/locksmith_customer_tags.rb --shopify-read SHOP=x"
+t deny "committed bin/ helper without --shopify-read" "$R/bin/prod_read.sh locksmith $R/bin/locksmith_customer_tags.rb SHOP=x"
+t deny "two prod_read.sh calls" "$R/bin/prod_read.sh locksmith $R/bin/locksmith_customer_tags.rb --shopify-read SHOP=x; $R/bin/prod_read.sh locksmith /tmp/x.rb --write"
+t deny "a script outside this repo's bin/" "$R/bin/prod_read.sh locksmith $R/../locksmith-api/bin/x.rb --shopify-read SHOP=x"
 exit $fail

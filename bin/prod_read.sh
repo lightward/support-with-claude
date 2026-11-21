@@ -6,6 +6,8 @@
 # Reads (the default): the script runs inside a transaction that's rolled back, with a 30s statement timeout and the
 # query cache off, so a database write in it can't stick and a polling loop sees fresh rows. What a rollback can't take
 # back is refused by bin/rolled_back_read_guard.rb: outbound HTTP (but Rollbar) and enqueueing background jobs.
+# --read-only: the same, with the transaction itself READ ONLY, so Postgres refuses any write (nextval and NOTIFY too).
+# Wrappers under the rolled-back standing go use it; plain read mode stays able to dry-run a write.
 # --write: runs the script as is, for an act Isaac has said go to.
 # --shopify-read: for scripts that read from Shopify (theme files, Admin GraphQL queries), which can't run inside the
 # rolled-back transaction because getting a session can refresh the shop's token, and that refresh must stick. The
@@ -20,11 +22,13 @@
 # The before-acting hook treats this script like `fly ssh`: it needs `# go: <Isaac's words>` as the command's first line,
 # except under a standing go (CLAUDE.md, "The shop, in production").
 set -euo pipefail
+# siblings are found by this file's real path, so a symlink to it can't bring its own guard (a reader, 2026-11-21)
+here="$(dirname "$(readlink -f "$0")")"
 
 case "${1:-}" in
   locksmith) app=locksmith-api-production ;;
   mechanic) app=mechanic-api-production ;;
-  *) echo "usage: prod_read.sh <locksmith|mechanic> <script.rb> [--write | --shopify-read] [NAME=value ...]" >&2; exit 2 ;;
+  *) echo "usage: prod_read.sh <locksmith|mechanic> <script.rb> [--read-only | --write | --shopify-read] [NAME=value ...]" >&2; exit 2 ;;
 esac
 script="${2:?script path}"
 [[ -f "$script" ]] || { echo "no such script: $script" >&2; exit 2; }
@@ -32,8 +36,8 @@ shift 2
 mode=read
 envs=()
 for arg in "$@"; do
-  if [[ "$arg" == "--write" || "$arg" == "--shopify-read" ]]; then
-    [[ "$mode" == read ]] || { echo "--write and --shopify-read can't be combined" >&2; exit 2; }
+  if [[ "$arg" == "--write" || "$arg" == "--shopify-read" || "$arg" == "--read-only" ]]; then
+    [[ "$mode" == read ]] || { echo "--read-only, --write and --shopify-read can't be combined" >&2; exit 2; }
     mode="${arg#--}"
   elif [[ "$arg" =~ ^[A-Z_][A-Z0-9_]*=[A-Za-z0-9._:@/-]*$ ]]; then envs+=("$arg")
   else echo "unexpected argument: $arg (env values are limited to [A-Za-z0-9._:@/-])" >&2; exit 2
@@ -56,15 +60,18 @@ if [[ -z "$machine" ]]; then machine=$(pick_machine); echo "$machine" > "$cache"
 
 # a unique name per run: several runs can share a machine at once (parallel forks did, 2026-10-21)
 run_id="cw_$(date +%s)_$$_$RANDOM"
-if [[ "$mode" == read ]]; then
-  outer="$(cat "$(dirname "$0")/rolled_back_read_guard.rb")"$'\n''ActiveRecord::Base.transaction do
+if [[ "$mode" == read || "$mode" == read-only ]]; then
+  ro=""
+  [[ "$mode" == read-only ]] && ro='ActiveRecord::Base.connection.execute("SET TRANSACTION READ ONLY")'
+  outer="$(cat "$here/rolled_back_read_guard.rb")"$'\n''ActiveRecord::Base.transaction do
+  '"$ro"'
   ActiveRecord::Base.connection.execute("SET LOCAL statement_timeout = '"'"'30s'"'"'")
   ActiveRecord::Base.uncached { load "/tmp/'"$run_id"'_inner.rb" }
   raise ActiveRecord::Rollback
 end'
 elif [[ "$mode" == shopify-read ]]; then
   [[ "$app" == locksmith-api-production ]] || { echo "--shopify-read is Locksmith-only for now" >&2; exit 2; }
-  guard="$(dirname "$0")/shopify_read_guard.rb"
+  guard="$here/shopify_read_guard.rb"
   outer="$(cat "$guard")"$'\n''ActiveRecord::Base.uncached { load "/tmp/'"$run_id"'_inner.rb" }'
 else
   outer='load "/tmp/'"$run_id"'_inner.rb"'

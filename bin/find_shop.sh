@@ -9,9 +9,10 @@
 # matched, never anyone's email; follow up with support_shop.sh for the shop itself. Written after #119834 and #119806
 # (2026-10-28), where a hand-written lookup needed a go and one shop couldn't be placed at all.
 #
-# It runs through prod_read.sh in its default mode: inside a rolled-back transaction, with outbound HTTP and job
-# enqueues refused by bin/rolled_back_read_guard.rb. A standing go for it is being proved (2026-11-21); until the
-# reader's fixes and a live run are in, it asks for a go like any other read.
+# It runs through prod_read.sh --read-only: a rolled-back, READ ONLY transaction, with outbound HTTP and job enqueues
+# refused by bin/rolled_back_read_guard.rb. Isaac's standing go covers it (2026-11-21) while it stays that way and the
+# hook's conditions hold (absolute path, all of bin/ committed and clean); the line below is what the hook looks for.
+# standing go: rolled-back read
 set -euo pipefail
 app=locksmith
 if [[ "${1:-}" == "--mechanic" ]]; then app=mechanic; shift; fi
@@ -38,8 +39,11 @@ else
 end
 if matches.empty?
   puts "no shops match #{needle}"
+elsif matches.size > 20
+  # a freemail domain (gmail.com, co.uk) would list every store with staff there: a count says what's useful
+  puts "#{matches.size} shops match #{needle}; too many to list (a shared mail domain?). Try the sender's full address."
 else
   matches.sort.each { |domain, how| puts "#{domain}: #{how.uniq.join(", ")}" }
 end
 RUBY
-"$(dirname "$0")/prod_read.sh" "$app" "$script" "NEEDLE=$needle"
+"$(dirname "$(readlink -f "$0")")/prod_read.sh" "$app" "$script" --read-only "NEEDLE=$needle"
