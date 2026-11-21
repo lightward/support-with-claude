@@ -9,7 +9,10 @@
 # matched, never anyone's email; follow up with support_shop.sh for the shop itself. Written after #119834 and #119806
 # (2026-10-28), where a hand-written lookup needed a go and one shop couldn't be placed at all.
 #
-# It runs through prod_read.sh like any other read, so it needs a go unless Isaac extends the standing one to it.
+# It runs through prod_read.sh in its default mode: inside a rolled-back transaction, with outbound HTTP and job
+# enqueues refused by bin/rolled_back_read_guard.rb. Isaac's standing go covers it (2026-11-21) while it stays that way,
+# tracked and unmodified; the line below is what the hook looks for.
+# standing go: rolled-back read
 set -euo pipefail
 app=locksmith
 if [[ "${1:-}" == "--mechanic" ]]; then app=mechanic; shift; fi

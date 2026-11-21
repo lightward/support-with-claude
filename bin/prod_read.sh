@@ -4,8 +4,8 @@
 #   prod_read.sh <locksmith|mechanic> <script.rb> [--write | --shopify-read] [NAME=value ...]
 #
 # Reads (the default): the script runs inside a transaction that's rolled back, with a 30s statement timeout and the
-# query cache off, so a database write in it can't stick and a polling loop sees fresh rows. (A call out to Shopify or
-# anywhere else is not rolled back: a "read" that calls a mutation is a write.)
+# query cache off, so a database write in it can't stick and a polling loop sees fresh rows. What a rollback can't take
+# back is refused by bin/rolled_back_read_guard.rb: outbound HTTP (but Rollbar) and enqueueing background jobs.
 # --write: runs the script as is, for an act Isaac has said go to.
 # --shopify-read: for scripts that read from Shopify (theme files, Admin GraphQL queries), which can't run inside the
 # rolled-back transaction because getting a session can refresh the shop's token, and that refresh must stick. The
@@ -17,7 +17,8 @@
 # passwords) before it reaches the terminal, and the Rails/Sidekiq boot noise is dropped. The scrub is a net, not a
 # license: print the fields you need, never whole objects.
 #
-# The before-acting hook treats this script like `fly ssh`: it needs `# go: <Isaac's words>` as the command's first line.
+# The before-acting hook treats this script like `fly ssh`: it needs `# go: <Isaac's words>` as the command's first line,
+# except under a standing go (CLAUDE.md, "The shop, in production").
 set -euo pipefail
 
 case "${1:-}" in
@@ -56,7 +57,7 @@ if [[ -z "$machine" ]]; then machine=$(pick_machine); echo "$machine" > "$cache"
 # a unique name per run: several runs can share a machine at once (parallel forks did, 2026-10-21)
 run_id="cw_$(date +%s)_$$_$RANDOM"
 if [[ "$mode" == read ]]; then
-  outer='ActiveRecord::Base.transaction do
+  outer="$(cat "$(dirname "$0")/rolled_back_read_guard.rb")"$'\n''ActiveRecord::Base.transaction do
   ActiveRecord::Base.connection.execute("SET LOCAL statement_timeout = '"'"'30s'"'"'")
   ActiveRecord::Base.uncached { load "/tmp/'"$run_id"'_inner.rb" }
   raise ActiveRecord::Rollback
