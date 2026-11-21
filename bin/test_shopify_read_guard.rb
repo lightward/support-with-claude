@@ -43,6 +43,7 @@ t("where id = id", false) { G.check_sql!(%(UPDATE "shops" SET "shopify_token" = 
 t("set to function", false) { G.check_sql!(%(UPDATE "shops" SET "shopify_token" = pg_terminate_backend(1)::text WHERE "shops"."id" = 1)) }
 t("set to subselect", false) { G.check_sql!(%(UPDATE "shops" SET "shopify_token" = (SELECT 'x') WHERE "shops"."id" = 1)) }
 t("E-string smuggle", false) { G.check_sql!(%(SELECT E'\\'' , 1; DELETE FROM locks --')) }
+t("Rails type map (a 'e' literal)", true) { G.check_sql!(%(SELECT t.oid, t.typname FROM pg_type as t WHERE t.typtype IN ('r', 'e', 'd') OR t.typinput = 'array_in(cstring,oid,integer)'::regprocedure)) }
 t("two statements", false) { G.check_sql!(%(SELECT 1; DELETE FROM locks)) }
 Req = Struct.new(:method, :path, :body, :body_stream)
 Http = Struct.new(:address)

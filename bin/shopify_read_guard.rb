@@ -33,7 +33,7 @@ module ShopifyReadGuard
   def check_sql!(sql)
     sql = sql.to_s
     return if sql.match?(HARMLESS)
-    if sql.match?(/;\s*\S/) || sql.match?(/\bE'/i)
+    if sql.match?(/;\s*\S/) || sql.match?(/(?<![\w'])E'/i)
       raise ActiveRecord::ReadOnlyError, "[shopify-read] refused a multi-statement or E-string query: #{sql[0, 70]}"
     end
     return if protocol_write?(sql)
