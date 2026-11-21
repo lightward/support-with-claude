@@ -1,12 +1,16 @@
 #!/bin/bash
 # Run a Ruby script in production on a pinned web machine, the careful way.
 #
-#   prod_read.sh <locksmith|mechanic> <script.rb> [--write] [NAME=value ...]
+#   prod_read.sh <locksmith|mechanic> <script.rb> [--write | --shopify-read] [NAME=value ...]
 #
 # Reads (the default): the script runs inside a transaction that's rolled back, with a 30s statement timeout and the
 # query cache off, so a database write in it can't stick and a polling loop sees fresh rows. (A call out to Shopify or
 # anywhere else is not rolled back: a "read" that calls a mutation is a write.)
 # --write: runs the script as is, for an act Isaac has said go to.
+# --shopify-read: for scripts that read from Shopify (theme files, Admin GraphQL queries), which can't run inside the
+# rolled-back transaction because getting a session can refresh the shop's token, and that refresh must stick. The
+# script runs under the guards in bin/shopify_read_guard.rb instead (database, outbound HTTP, background jobs; read its
+# header for exactly what each lets through). Query cache off. Locksmith only.
 # NAME=value pairs become environment variables for the script (e.g. SHOP=… DAYS=15).
 #
 # Output is scrubbed of anything shaped like a credential (Shopify tokens, bearer tokens, client secrets, JWTs, URL
@@ -19,7 +23,7 @@ set -euo pipefail
 case "${1:-}" in
   locksmith) app=locksmith-api-production ;;
   mechanic) app=mechanic-api-production ;;
-  *) echo "usage: prod_read.sh <locksmith|mechanic> <script.rb> [--write] [NAME=value ...]" >&2; exit 2 ;;
+  *) echo "usage: prod_read.sh <locksmith|mechanic> <script.rb> [--write | --shopify-read] [NAME=value ...]" >&2; exit 2 ;;
 esac
 script="${2:?script path}"
 [[ -f "$script" ]] || { echo "no such script: $script" >&2; exit 2; }
@@ -27,7 +31,9 @@ shift 2
 mode=read
 envs=()
 for arg in "$@"; do
-  if [[ "$arg" == "--write" ]]; then mode=write
+  if [[ "$arg" == "--write" || "$arg" == "--shopify-read" ]]; then
+    [[ "$mode" == read ]] || { echo "--write and --shopify-read can't be combined" >&2; exit 2; }
+    mode="${arg#--}"
   elif [[ "$arg" =~ ^[A-Z_][A-Z0-9_]*=[A-Za-z0-9._:@/-]*$ ]]; then envs+=("$arg")
   else echo "unexpected argument: $arg (env values are limited to [A-Za-z0-9._:@/-])" >&2; exit 2
   fi
@@ -55,6 +61,10 @@ if [[ "$mode" == read ]]; then
   ActiveRecord::Base.uncached { load "/tmp/'"$run_id"'_inner.rb" }
   raise ActiveRecord::Rollback
 end'
+elif [[ "$mode" == shopify-read ]]; then
+  [[ "$app" == locksmith-api-production ]] || { echo "--shopify-read is Locksmith-only for now" >&2; exit 2; }
+  guard="$(dirname "$0")/shopify_read_guard.rb"
+  outer="$(cat "$guard")"$'\n''ActiveRecord::Base.uncached { load "/tmp/'"$run_id"'_inner.rb" }'
 else
   outer='load "/tmp/'"$run_id"'_inner.rb"'
 fi
