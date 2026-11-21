@@ -1,0 +1,5 @@
+{
+  "env": {
+    "CLAUDE_CODE_THINKING_DISPLAY_UPDATES": "false"
+  }
+}
