@@ -31,7 +31,34 @@ done < <(grep -oE "${at_start}[a-z-]+([[:space:]]+[a-z-]+)?" <<<"$code" | sed -E
 
 # prod_read.sh runs fly ssh where the check above can't see it, so calling it counts the same.
 # (support_shop.sh also calls it, from inside, and passes on purpose: Isaac's standing go covers that one read.)
-grep -qE '(^|[;&|(`])[[:space:]]*((ba)?sh[[:space:]]+)?[^[:space:];&|]*prod_read\.sh([[:space:]]|$)' <<<"$cmd" && stop "production via prod_read.sh"
+# One more standing go (Isaac, 2026-11-21, on "the geometry of the you+me+readers proof"): prod_read.sh locksmith
+# <script> --shopify-read, when the script is in this repo's bin/ and the script, the guard and prod_read.sh itself are
+# all tracked and unmodified. The guard (bin/shopify_read_guard.rb) is what holds a committed script to reading.
+# Anything else about the call (a second prod_read.sh, --write, mechanic, a script outside bin/, an uncommitted edit,
+# a path that doesn't resolve from this repo) falls through to the stop below.
+repo="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
+shopify_read_ok() {
+  [[ $(grep -oE 'prod_read\.sh' <<<"$cmd" | wc -l) -eq 1 ]] || return 1
+  local seg w pr app script f
+  seg=$(grep -oE '[^[:space:];&|(`]*prod_read\.sh[^;&|]*' <<<"$code") || return 1
+  read -r -a w <<<"$seg"
+  pr="${w[0]/#\~/$HOME}"; app="${w[1]:-}"; script="${w[2]:-}"
+  [[ "$app" == locksmith ]] || return 1
+  grep -qE '(^|[[:space:]])--shopify-read([[:space:]]|$)' <<<"$seg" || return 1
+  grep -qE '(^|[[:space:]])--write([[:space:]]|$)' <<<"$seg" && return 1
+  script="${script/#\~/$HOME}"
+  [[ "$pr" == /* ]] || pr="$repo/$pr"
+  [[ "$script" == /* ]] || script="$repo/$script"
+  pr=$(readlink -f "$pr" 2>/dev/null) || return 1
+  script=$(readlink -f "$script" 2>/dev/null) || return 1
+  [[ "$pr" == "$repo/bin/prod_read.sh" ]] || return 1
+  [[ "$script" == "$repo"/bin/*.rb && "${script#"$repo"/bin/}" != */* ]] || return 1
+  for f in "$script" "$repo/bin/shopify_read_guard.rb" "$repo/bin/prod_read.sh"; do
+    git -C "$repo" ls-files --error-unmatch "$f" >/dev/null 2>&1 || return 1
+    git -C "$repo" diff --quiet HEAD -- "$f" 2>/dev/null || return 1
+  done
+}
+grep -qE '(^|[;&|(`])[[:space:]]*((ba)?sh[[:space:]]+)?[^[:space:];&|]*prod_read\.sh([[:space:]]|$)' <<<"$cmd" && ! shopify_read_ok && stop "production via prod_read.sh"
 # So does a script that calls it from inside (find_shop.sh, say): without this, any new wrapper would be a quiet
 # standing go. support_shop.sh is the one named exception; comment lines that mention prod_read.sh don't count.
 # Only a script being run counts (where a command starts, maybe under sh/bash/python3/ruby/node), so naming one
@@ -39,7 +66,7 @@ grep -qE '(^|[;&|(`])[[:space:]]*((ba)?sh[[:space:]]+)?[^[:space:];&|]*prod_read
 runner='(^|[;&|(`])[[:space:]]*(((ba)?sh|python3|ruby|node)[[:space:]]+(-[A-Za-z]+[[:space:]]+)*)?'
 for f in $(grep -oE "${runner}[^[:space:];&|\"']+\.(py|rb|sh|js)\b" <<<"$cmd" | sed -E 's/^.*[[:space:];&|(`]//; s/^.*[[:space:]]//'); do
   f="${f/#\~/$HOME}"
-  case "$f" in *support_shop.sh | *prod_read.sh | *test-before-acting.sh) continue ;; esac
+  case "$f" in *support_shop.sh | *prod_read.sh | *before-acting.sh) continue ;; esac
   [[ -f "$f" ]] && grep -vE '^[[:space:]]*#' "$f" | grep -q 'prod_read\.sh' && stop "production via ${f##*/}, which runs prod_read.sh"
 done
 
@@ -49,7 +76,7 @@ text="$cmd"
 for f in $(grep -oE "${runner}[^[:space:];&|\"']+\.(py|rb|sh|js)\b" <<<"$cmd" | sed -E 's/^.*[[:space:];&|(`]//; s/^.*[[:space:]]//'); do
   f="${f/#\~/$HOME}"
   # this hook's own tests hold sample acts as strings; running them is not an act
-  [[ "$f" == *test-before-acting.sh ]] && continue
+  [[ "$f" == *before-acting.sh ]] && continue
   [[ -f "$f" ]] && text+=$'\n'"$(cat "$f")"
 done
 # /reply as the API endpoint, not the start of a filename like reply.html
