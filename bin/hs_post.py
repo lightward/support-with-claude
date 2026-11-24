@@ -32,7 +32,7 @@ def call(method, path, body=None):
         errors = (json.loads(e.read() or b"{}").get("_embedded") or {}).get("errors") or []
         sys.exit(f"{method} {path}: {e.code} " + ("; ".join(x.get("message", "") for x in errors) or e.reason))
 
-# usage: hs_post.py <conversation id> <note.html> <reply.html | -> [status] [--claims-checked-by-background-reader | --no-product-claims] [--cc address …] [--check]
+# usage: hs_post.py <conversation id> <note.html> <reply.html | -> [status] [--claims-checked-by-background-reader | --no-claims] [--cc address …] [--check]
 #   (reply posted as a draft; status on send defaults to closed; "-" posts the note alone)
 # --check runs every check (formatting, the scale nudge) and says what would land, then stops: nothing is posted.
 # Posting can't be undone (no edits, no deleting drafts), so check first whenever a nudge might change the draft.
@@ -40,18 +40,19 @@ def call(method, path, body=None):
 # #119459); it's on the draft, so Isaac sees it before sending
 # a note without a status reopens the conversation (#119285), so each note carries the conversation's current one
 # Posting a reply needs one of two flags: --claims-checked-by-background-reader when a separate reader has claim-checked
-# it (a reply saying how Locksmith, Mechanic or Shopify behaves), or --no-product-claims (thanks, routing, questions).
-# Checking it yourself doesn't count: the pause is for the miss you can't see mid-flow (#119662's wrong reply), and the
-# flag is named so it can't quietly stretch (Isaac, 2026-10-26, after it had)
+# it, or --no-claims when it asserts nothing at all (thanks, a question, a pointer to another thread). Any claim counts:
+# how something behaves, what we did, what a record shows. Checking it yourself doesn't count: the pause is for the miss
+# you can't see mid-flow (#119662's wrong reply), and the flags are named so they can't quietly stretch (Isaac,
+# 2026-10-26, after one had; and 2026-11-24, when "product" in --no-product-claims let an "it's done" reply slip by)
 argv, cc, send, check, claims = [], [], False, False, None
 it = iter(sys.argv[1:])
 for a in it:
     if a == "--claims-checked-by-background-reader":
         claims = "reader"
-    elif a == "--no-product-claims":
+    elif a == "--no-claims":
         claims = "none"
-    elif a == "--claims":
-        raise SystemExit("--claims is retired: use --claims-checked-by-background-reader or --no-product-claims")
+    elif a in ("--claims", "--no-product-claims"):
+        raise SystemExit(f"{a} is retired: use --claims-checked-by-background-reader, or --no-claims for a reply that asserts nothing")
     elif a == "--cc":
         cc.append(next(it))
     elif a == "--check":
@@ -70,7 +71,7 @@ assert not (cc and reply_path == "-"), "--cc needs a reply to copy"
 assert not (send and reply_path == "-"), "--send needs a reply to send"
 assert status in ("active", "pending", "closed"), status
 assert check or reply_path == "-" or claims, \
-    "posting a reply wants --claims-checked-by-background-reader or --no-product-claims"
+    "posting a reply wants --claims-checked-by-background-reader or --no-claims"
 note = open(note_path).read().strip()
 reply = None if reply_path == "-" else open(reply_path).read().strip()
 for name, html in (("note", note), ("reply", reply or "")):
