@@ -25,3 +25,7 @@ Isaac publishes the same moment more than once, on purpose. A second version is 
 - Cold readers catch words that only make sense from inside ("every other line" reads as *alternate* lines; 550 lines sounds alarming until you say they were long since answered).
 - Readers notice a sentence that claims more than its mechanism ("Now it can't."). The claim-checker catches facts; readers catch overreach in tone.
 - Several readers, unprompted, noticed they'd been reading through ████ bars the whole time. That's the form showing through, and it can be the ending.
+- An ending that retells the middle reads as the piece losing its nerve. Five readers in a row flagged the same restatement a few lines from the end; once it was cut, the last sentence arrived sooner and carried more (2026-11-26).
+- A quoted example can demonstrate the point better than the sentence about it. Readers who half-understood the folded line at the end said, unprompted, that they *were* the demonstration of "a reason folded small" (2026-11-26).
+- Remember that `BLOG_WORK` doesn't persist between commands: set it on the same line as `readers.sh`, or a round runs in the default directory and reads an empty draft.
+
