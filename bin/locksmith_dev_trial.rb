@@ -18,6 +18,11 @@ if shop.subscriber?
   puts "REFUSED: shop has a subscription; nothing to extend"
 else
   shop.update!(trial_ends_in: "100 years")
-  shop.enqueue_standard_install_job!(comment: "development store trial (100 years) by Claude, with Isaac's go")
+  # A rolled-back dry run refuses outside calls, and finding the main theme reaches Shopify, so it only says what it would queue.
+  if defined?(RolledBackReadGuard)
+    puts "dry run: would queue the reinstall the admin page queues"
+  else
+    shop.enqueue_standard_install_job!(comment: "development store trial (100 years) by Claude, with Isaac's go")
+  end
   show.("after")
 end

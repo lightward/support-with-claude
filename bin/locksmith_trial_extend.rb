@@ -35,6 +35,11 @@ elsif until_date && shop.trial_ends_at && shop.trial_ends_at >= ends_at
   puts "REFUSED: trial already ends #{shop.trial_ends_at.iso8601}, on or after #{ends_at.iso8601}"
 else
   shop.update!(trial_ends_in: days ? "#{days} days" : "#{seconds} seconds")
-  shop.enqueue_standard_install_job!(comment: "trial extension (#{days ? "#{days} days" : "until #{until_date}"}) by Claude, with Isaac's go")
+  # A rolled-back dry run refuses outside calls, and finding the main theme reaches Shopify, so it only says what it would queue.
+  if defined?(RolledBackReadGuard)
+    puts "dry run: would queue the reinstall the admin page queues"
+  else
+    shop.enqueue_standard_install_job!(comment: "trial extension (#{days ? "#{days} days" : "until #{until_date}"}) by Claude, with Isaac's go")
+  end
   show.("after")
 end

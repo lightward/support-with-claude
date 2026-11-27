@@ -19,6 +19,11 @@ if shop.content_styling_version.to_s == version
   puts "REFUSED: shop already has content styling #{version.inspect}; nothing to change"
 else
   shop.update!(content_styling_version: version)
-  shop.enqueue_standard_install_job!(comment: "content styling #{version.inspect} by Claude, with Isaac's go")
+  # A rolled-back dry run refuses outside calls, and finding the main theme reaches Shopify, so it only says what it would queue.
+  if defined?(RolledBackReadGuard)
+    puts "dry run: would queue the reinstall the admin page queues"
+  else
+    shop.enqueue_standard_install_job!(comment: "content styling #{version.inspect} by Claude, with Isaac's go")
+  end
   show.("after")
 end
